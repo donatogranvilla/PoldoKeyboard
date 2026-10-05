@@ -44,9 +44,15 @@ class LocalAiManager(
             return runCatching { activeEngine.carica(installedModel) }
         }
 
-        // TODO(human): nessun modello installato. Decidere la risposta: un errore esplicito
-        // (NessunModelloException) oppure, solo se consentiMotoreFinto, il passaggio a MotoreMock.
-        TODO("Politica da definire quando non c'è nessun modello installato")
+        // Nessun modello installato: errore esplicito, a meno che il chiamante non abbia chiesto il motore finto
+        if (!consentiMotoreFinto) {
+            return Result.failure(NessunModelloException())
+        }
+        if (activeEngine !is MotoreMock) {
+            activeEngine.close()
+            activeEngine = MotoreMock()
+        }
+        return Result.success(Unit)
     }
 
     /**
