@@ -24,11 +24,14 @@ In accordance with project requirements, every dependency is audited to ensure c
 
 | Model Identifier | Base Architecture | Author / Source | Format | Size (approx.) | License | Commercial Use | Checksum (SHA256) |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| `whisper-tiny-q5_1` | OpenAI Whisper Tiny | OpenAI / ggerganov | GGML Q5_1 | ~32 MB | MIT | **Yes** | Verified on import |
-| `whisper-base-q5_1` | OpenAI Whisper Base | OpenAI / ggerganov | GGML Q5_1 | ~57 MB | MIT | **Yes** | Verified on import |
-| `whisper-small-q5_1` | OpenAI Whisper Small | OpenAI / ggerganov | GGML Q5_1 | ~180 MB | MIT | **Yes** | Verified on import |
-| `whisper-base` | OpenAI Whisper Base | OpenAI / ggerganov | GGML F16 | ~142 MB | MIT | **Yes** | Verified on import |
-| `whisper-small` | OpenAI Whisper Small | OpenAI / ggerganov | GGML F16 | ~466 MB | MIT | **Yes** | Verified on import |
+| `whisper-tiny-q5_1` | OpenAI Whisper Tiny | OpenAI / ggerganov | GGML Q5_1 | 32 MB | MIT | **Yes** | Verified on import |
+| `whisper-base-q5_1` | OpenAI Whisper Base | OpenAI / ggerganov | GGML Q5_1 | 60 MB | MIT | **Yes** | Verified on import |
+| `whisper-small-q5_1` | OpenAI Whisper Small | OpenAI / ggerganov | GGML Q5_1 | 190 MB | MIT | **Yes** | Verified on import |
+| `whisper-medium-q5_0` | OpenAI Whisper Medium | OpenAI / ggerganov | GGML Q5_0 | 539 MB | MIT | **Yes** | Verified on import |
+| `whisper-large-v3-turbo-q5_0` | OpenAI Whisper Large v3 Turbo | OpenAI / ggerganov | GGML Q5_0 | 574 MB | MIT | **Yes** | Verified on import |
+| `whisper-large-v3-turbo-q8_0` | OpenAI Whisper Large v3 Turbo | OpenAI / ggerganov | GGML Q8_0 | 874 MB | MIT | **Yes** | Verified on import |
+| `whisper-large-v3-q5_0` | OpenAI Whisper Large v3 | OpenAI / ggerganov | GGML Q5_0 | 1.08 GB | MIT | **Yes** | Verified on import |
+| `parakeet-tdt-0.6b-v3-int8` (planned) | NVIDIA Parakeet TDT 0.6B v3 | NVIDIA / k2-fsa | ONNX int8 | 640 MB | CC-BY-4.0 | **Yes**, with attribution | Verified on import |
 
 ---
 

@@ -66,14 +66,19 @@ graph TD
 - Ogni blocco viene elaborato con avanzamento percentuale fluido e ricongiunto con punteggiatura naturale.
 
 ### 4. Modelli Intercambiabili e Riconoscimento Hardware
-La tastiera analizza la memoria RAM e i core CPU del dispositivo ([`ProfiloDispositivo`](file:///c:/Dev/PoldoKeyboard/lib/localai/src/main/kotlin/org/florisboard/lib/localai/model/ProfiloDispositivo.kt)) e consiglia il modello ottimale:
+Il catalogo ([`ModelCatalog`](lib/localai/src/main/kotlin/org/florisboard/lib/localai/model/ModelCatalog.kt)) comprende tutti i modelli Whisper da tiny a large-v3; il predefinito lo sceglierà il benchmark sui vocali reali. Fino ad allora la tastiera ne consiglia uno in base alla RAM ([`ProfiloDispositivo`](lib/localai/src/main/kotlin/org/florisboard/lib/localai/model/ProfiloDispositivo.kt)). La RAM dei modelli da medium in su è una stima da misurare.
 
-| Modello | Dimensione Download | RAM Consigliata | Velocità | Accuratezza | Ideale Per |
-| :--- | :---: | :---: | :---: | :---: | :--- |
-| **Whisper Tiny (Q5_1)** | **~31 MB** | ~200 MB | ⚡⚡⚡⚡⚡ | ⭐⭐⭐ | Dispositivi entry-level (< 3.5GB RAM) e note vocali veloci |
-| **Whisper Base (Q5_1)** *(Default)* | **~57 MB** | ~400 MB | ⚡⚡⚡⚡ | ⭐⭐⭐⭐ | **Consigliato per la maggior parte dei telefoni**: fluidità e punteggiatura ottimale |
-| **Whisper Small (Q5_1)** | **~182 MB** | ~900 MB | ⚡⚡ | ⭐⭐⭐⭐⭐ | Dispositivi potenti (6GB+ RAM): massima precisione con audio rumorosi e nomi propri |
-| **Modello Personalizzato (.bin)** | A scelta | A scelta | Dinamica | Dinamica | Importazione di qualsiasi file GGML Whisper dalla memoria interna |
+| Modello | File | Dimensione | RAM stimata |
+| :--- | :--- | ---: | ---: |
+| Whisper Tiny (Q5_1) | `ggml-tiny-q5_1.bin` | 32 MB | ~200 MB |
+| Whisper Base (Q5_1) | `ggml-base-q5_1.bin` | 60 MB | ~400 MB |
+| Whisper Small (Q5_1) | `ggml-small-q5_1.bin` | 190 MB | ~900 MB |
+| Whisper Medium (Q5_0) | `ggml-medium-q5_0.bin` | 539 MB | ~1 GB |
+| Whisper Large v3 Turbo (Q5_0) | `ggml-large-v3-turbo-q5_0.bin` | 574 MB | ~1 GB |
+| Whisper Large v3 Turbo (Q8_0) | `ggml-large-v3-turbo-q8_0.bin` | 874 MB | ~1,3 GB |
+| Whisper Large v3 (Q5_0) | `ggml-large-v3-q5_0.bin` | 1,08 GB | ~2 GB |
+
+Parakeet TDT 0.6B v3 (sherpa-onnx) entrerà nel catalogo insieme al suo motore. Con le opzioni sviluppatore attive si può importare anche un file GGML fuori catalogo.
 
 ### 5. Suite di Benchmark & Test Prestazioni
 - Accessibile dal pulsante **"🚀 Test Prestazioni"** nella gestione modelli.

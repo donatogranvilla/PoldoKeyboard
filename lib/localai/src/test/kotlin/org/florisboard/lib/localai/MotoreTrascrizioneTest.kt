@@ -100,7 +100,7 @@ class MotoreTrascrizioneTest {
 
     @Test
     fun testCatalogoModelliHardwareAttributes() {
-        assertEquals(3, ModelCatalog.ALL_MODELS.size)
+        assertEquals(7, ModelCatalog.ALL_MODELS.size)
 
         for (model in ModelCatalog.ALL_MODELS) {
             assertTrue(model.sizeBytes > 0)
