@@ -130,6 +130,12 @@
             </intent-filter>
         </activity>
 
+        <!-- Gestione dei modelli di trascrizione, aperta anche dalla tastiera -->
+        <activity
+            android:name="dev.patrickgold.florisboard.ime.voice.GestioneModelliActivity"
+            android:theme="@style/FlorisAppTheme.Transparent"
+            android:exported="false"/>
+
         <!-- Transcribe Audio Share Activity for WhatsApp / Android Share Target -->
         <activity
             android:name="dev.patrickgold.florisboard.ime.voice.TranscribeShareActivity"

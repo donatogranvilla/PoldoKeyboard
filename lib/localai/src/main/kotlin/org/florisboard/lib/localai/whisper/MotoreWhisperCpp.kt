@@ -15,7 +15,7 @@ class MotoreWhisperCpp : MotoreTrascrizione {
     private var modelloAttivo: ModelloInstallato? = null
 
     override val isModelloCaricato: Boolean
-        get() = handleContesto != 0L || (!WhisperNative.isAvailable && modelloAttivo != null)
+        get() = handleContesto != 0L
 
     override val modelloCorrente: ModelloInstallato?
         get() = modelloAttivo
@@ -28,20 +28,23 @@ class MotoreWhisperCpp : MotoreTrascrizione {
             throw IllegalArgumentException("Il file del modello non esiste in: ${modello.percorsoFile.absolutePath}")
         }
 
+        // Senza la libreria nativa non c'è nulla da caricare: meglio un errore che un motore che finge
+        if (!WhisperNative.isAvailable) {
+            throw MotoreNonDisponibileException("whisper.cpp")
+        }
+
         // Se lo stesso identico modello è già caricato, evitiamo allocazioni ridondanti
-        if (modelloAttivo?.id == modello.id && (handleContesto != 0L || !WhisperNative.isAvailable)) {
+        if (modelloAttivo?.id == modello.id && handleContesto != 0L) {
             return@withContext
         }
 
         close() // Rilascia l'eventuale modello precedente per liberare RAM
 
-        if (WhisperNative.isAvailable) {
-            val handle = WhisperNative.initContext(modello.percorsoFile.absolutePath)
-            if (handle == 0L) {
-                throw IllegalStateException("whisper.cpp non è riuscito a inizializzare il modello: ${modello.nome}")
-            }
-            handleContesto = handle
+        val handle = WhisperNative.initContext(modello.percorsoFile.absolutePath)
+        if (handle == 0L) {
+            throw IllegalStateException("whisper.cpp non è riuscito a inizializzare il modello: ${modello.nome}")
         }
+        handleContesto = handle
         modelloAttivo = modello
     }
 
@@ -53,6 +56,7 @@ class MotoreWhisperCpp : MotoreTrascrizione {
         opzioni: OpzioniTrascrizione,
         avanzamento: (Float) -> Unit,
     ): RisultatoTrascrizione = withContext(Dispatchers.Default) {
+        check(handleContesto != 0L) { "Nessun modello caricato in MotoreWhisperCpp." }
         if (segmenti.isEmpty()) {
             return@withContext RisultatoTrascrizione(testo = "", durataAudioMs = 0L, tempoInferenzaMs = 0L)
         }
@@ -68,17 +72,13 @@ class MotoreWhisperCpp : MotoreTrascrizione {
             val pesoProgresso = 1.0f / numSegmenti
             avanzamento((baseProgresso + 0.1f * pesoProgresso).coerceIn(0.0f, 1.0f))
 
-            val chunkGrezzo: String = if (WhisperNative.isAvailable && handleContesto != 0L) {
-                WhisperNative.fullTranscribe(
-                    contextHandle = handleContesto,
-                    samples = seg.campioniAudio,
-                    language = opzioni.lingua,
-                    threads = opzioni.numThread,
-                    translate = opzioni.traduciInInglese
-                ) ?: ""
-            } else {
-                "Trascrizione completata con ${modelloAttivo?.nome ?: "Whisper Base"}."
-            }
+            val chunkGrezzo: String = WhisperNative.fullTranscribe(
+                contextHandle = handleContesto,
+                samples = seg.campioniAudio,
+                language = opzioni.lingua,
+                threads = opzioni.numThread,
+                translate = opzioni.traduciInInglese
+            ) ?: ""
 
             val chunkProcessato = if (opzioni.formattaPunteggiatura) {
                 TextPostProcessor.process(chunkGrezzo, opzioni.lingua)

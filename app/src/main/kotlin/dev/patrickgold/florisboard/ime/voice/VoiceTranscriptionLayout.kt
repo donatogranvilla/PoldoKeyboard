@@ -2,8 +2,6 @@ package dev.patrickgold.florisboard.ime.voice
 
 import android.net.Uri
 import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
@@ -71,7 +69,6 @@ fun VoiceTranscriptionLayout(
 
     var selectedLang by remember { mutableStateOf<String?>(null) }
     var autoCommitEnabled by remember { mutableStateOf(true) }
-    var showModelDialog by remember { mutableStateOf(false) }
 
     var isProcessing by remember { mutableStateOf(false) }
     var processingStatus by remember { mutableStateOf("Pronto per la trascrizione") }
@@ -138,12 +135,6 @@ fun VoiceTranscriptionLayout(
         }
     }
 
-    val audioFilePicker = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        uri?.let { transcribeUri(it) }
-    }
-
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -183,7 +174,7 @@ fun VoiceTranscriptionLayout(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                val currentModelName = remember(showModelDialog) {
+                val currentModelName = remember {
                     localAiManager.modelManager.getActiveInstalledModel()?.nome
                         ?: localAiManager.modelManager.getRecommendedModel().name.replace(" (Q5_1)", "")
                 }
@@ -192,7 +183,7 @@ fun VoiceTranscriptionLayout(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .clip(RoundedCornerShape(12.dp))
-                        .clickable { showModelDialog = true }
+                        .clickable { GestioneModelliActivity.avvia(context) }
                         .background(Color(0xFF2C3E50))
                         .padding(horizontal = 8.dp, vertical = 4.dp)
                 ) {
@@ -331,7 +322,7 @@ fun VoiceTranscriptionLayout(
                 }
                 else -> {
                     Text(
-                        text = "Scegli un vocale salvato sul telefono, oppure condividilo da WhatsApp con «Trascrivi».",
+                        text = "Condividi un vocale da WhatsApp con «Trascrivi con PoldoKeyboard»: la trascrizione comparirà qui.",
                         color = Color(0xFFAAAAAA),
                         fontSize = 13.sp,
                         textAlign = TextAlign.Center
@@ -339,50 +330,5 @@ fun VoiceTranscriptionLayout(
                 }
             }
         }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // 4. Primary Action Buttons
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            // Button A: Pick WhatsApp / Audio File
-            Row(
-                modifier = Modifier
-                    .weight(1f)
-                    .height(48.dp)
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(Color(0xFF2E7D32))
-                    .clickable(enabled = !isProcessing) {
-                        resultText = null
-                        audioFilePicker.launch("audio/*")
-                    }
-                    .padding(horizontal = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.FolderOpen,
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(
-                    text = "Scegli un vocale",
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 13.sp
-                )
-            }
-        }
-    }
-
-    if (showModelDialog) {
-        ModelManagementDialog(
-            localAiManager = localAiManager,
-            onDismiss = { showModelDialog = false }
-        )
     }
 }

@@ -15,8 +15,13 @@ import java.io.File
  * Coordinatore principale del sottosistema AI Locale.
  * Collega i motori di trascrizione intercambiabili ([MotoreTrascrizione]),
  * il gestore dei modelli ([ModelManager]) e il decoder audio per i formati WhatsApp/Opus.
+ * @param consentiMotoreFinto true per poter provare il flusso con [MotoreMock] quando manca un modello,
+ *   pensato per le build di sviluppo; in produzione resta false.
  */
-class LocalAiManager(val context: Context) {
+class LocalAiManager(
+    val context: Context,
+    private val consentiMotoreFinto: Boolean = false,
+) {
     val modelManager = ModelManager(context)
 
     var activeEngine: MotoreTrascrizione = MotoreWhisperCpp()
@@ -24,22 +29,24 @@ class LocalAiManager(val context: Context) {
 
     /**
      * Assicura che il modello selezionato sia caricato in RAM (operazione eseguita una sola volta).
+     * @return Successo se il motore attivo è pronto, altrimenti l'errore che spiega perché non lo è.
      */
     suspend fun ensureModelLoaded(): Result<Unit> {
         if (activeEngine.isModelloCaricato) return Result.success(Unit)
 
         val installedModel = modelManager.getActiveInstalledModel()
-        return if (installedModel != null && installedModel.percorsoFile.exists()) {
-            runCatching {
-                activeEngine.carica(installedModel)
+        if (installedModel != null && installedModel.percorsoFile.exists()) {
+            // Un modello vero non va mai caricato nel motore finto
+            if (activeEngine is MotoreMock) {
+                activeEngine.close()
+                activeEngine = MotoreWhisperCpp()
             }
-        } else {
-            // Se nessun modello offline è stato ancora scaricato, usiamo il motore mock temporaneo
-            if (activeEngine !is MotoreMock) {
-                activeEngine = MotoreMock()
-            }
-            Result.success(Unit)
+            return runCatching { activeEngine.carica(installedModel) }
         }
+
+        // TODO(human): nessun modello installato. Decidere la risposta: un errore esplicito
+        // (NessunModelloException) oppure, solo se consentiMotoreFinto, il passaggio a MotoreMock.
+        TODO("Politica da definire quando non c'è nessun modello installato")
     }
 
     /**
@@ -95,7 +102,7 @@ class LocalAiManager(val context: Context) {
         opzioni: OpzioniTrascrizione,
         avanzamento: (Float) -> Unit,
     ): Result<RisultatoTrascrizione> {
-        ensureModelLoaded()
+        ensureModelLoaded().onFailure { return Result.failure(it) }
         return runCatching {
             activeEngine.trascrivi(AudioSegmenter.segmenta(campioni), opzioni, avanzamento)
         }
@@ -109,7 +116,7 @@ class LocalAiManager(val context: Context) {
         opzioni: OpzioniTrascrizione = OpzioniTrascrizione.Predefinite,
         avanzamento: (Float) -> Unit = {}
     ): Result<RisultatoTrascrizione> {
-        ensureModelLoaded()
+        ensureModelLoaded().onFailure { return Result.failure(it) }
         return runCatching {
             activeEngine.trascrivi(segmenti, opzioni, avanzamento)
         }

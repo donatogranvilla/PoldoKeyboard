@@ -50,51 +50,42 @@ class MotoreTrascrizioneTest {
         tempFile.delete()
     }
 
+    /** Senza libreria nativa, come nei test su JVM, il motore fallisce invece di restituire testo segnaposto. */
     @Test
-    fun testMotoreWhisperCppLifecycle() = runBlocking {
+    fun testMotoreWhisperCppSenzaLibreriaNativa() = runBlocking {
         val motore: MotoreTrascrizione = MotoreWhisperCpp()
         assertFalse(motore.isModelloCaricato)
 
-        // Verifica eccezione su file inesistente
-        val fakeFile = File("non_existent_model_file.bin")
+        // Un file inesistente viene rifiutato per primo
         val modelloInesistente = ModelloInstallato(
             id = "fake",
             nome = "Fake",
-            percorsoFile = fakeFile
+            percorsoFile = File("non_existent_model_file.bin")
         )
-
         assertThrows(IllegalArgumentException::class.java) {
             runBlocking { motore.carica(modelloInesistente) }
         }
 
-        // Test con file reale temporaneo
+        // Con un file vero ma senza libreria nativa il caricamento segnala il motore mancante
         val tempFile = File.createTempFile("whisper_test", ".bin")
         val modello = ModelloInstallato(
             id = "whisper-base",
             nome = "Whisper Base",
             percorsoFile = tempFile
         )
+        assertThrows(MotoreNonDisponibileException::class.java) {
+            runBlocking { motore.carica(modello) }
+        }
+        assertFalse(motore.isModelloCaricato)
 
-        motore.carica(modello)
-        assertTrue(motore.isModelloCaricato)
-
-        // Trascrizione con 2 segmenti audio concatenati (0.5s + 0.5s)
-        val seg1 = SegmentoVoce(FloatArray(8000))
-        val seg2 = SegmentoVoce(FloatArray(8000))
-
-        val progressList = mutableListOf<Float>()
-        val res = motore.trascrivi(
-            segmenti = listOf(seg1, seg2),
-            opzioni = OpzioniTrascrizione(lingua = "it", formattaPunteggiatura = true),
-            avanzamento = { progressList.add(it) }
-        )
-
-        assertEquals(1000L, res.durataAudioMs)
-        assertTrue(res.testo.isNotEmpty())
-        assertEquals(1.0f, progressList.last())
+        // Senza modello caricato anche la trascrizione è un errore
+        assertThrows(IllegalStateException::class.java) {
+            runBlocking {
+                motore.trascrivi(listOf(SegmentoVoce(FloatArray(8000))), OpzioniTrascrizione(), {})
+            }
+        }
 
         motore.close()
-        assertFalse(motore.isModelloCaricato)
         tempFile.delete()
     }
 

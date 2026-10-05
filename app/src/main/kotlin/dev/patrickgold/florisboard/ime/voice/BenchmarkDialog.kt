@@ -39,18 +39,22 @@ fun BenchmarkDialog(
             isRunning = true
             benchmarkReport = null
             globalProgress = 0.02f
-            localAiManager.ensureModelLoaded()
 
-            val report = BenchmarkSuite.eseguiBenchmark(
-                context = context,
-                motore = localAiManager.activeEngine,
-                onAvanzamentoGlobale = { p, status ->
-                    globalProgress = p
-                    statusText = status
-                }
-            )
-
-            benchmarkReport = report
+            // Senza modello o senza motore nativo il test si ferma con un messaggio, invece di far chiudere l'app
+            localAiManager.ensureModelLoaded().mapCatching {
+                BenchmarkSuite.eseguiBenchmark(
+                    context = context,
+                    motore = localAiManager.activeEngine,
+                    onAvanzamentoGlobale = { p, status ->
+                        globalProgress = p
+                        statusText = status
+                    }
+                )
+            }.onSuccess { report ->
+                benchmarkReport = report
+            }.onFailure { errore ->
+                statusText = "Test non eseguito: ${errore.message}"
+            }
             isRunning = false
         }
     }
