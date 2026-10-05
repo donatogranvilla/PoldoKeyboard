@@ -55,7 +55,8 @@ configure<ApplicationExtension> {
     namespace = "dev.patrickgold.florisboard"
     compileSdk = providers.gradleProperty("projectCompileSdk").get().toInt()
     buildToolsVersion = tools.versions.buildTools.get()
-    ndkVersion = tools.versions.ndk.get()
+    // Versione locale facoltativa (gradle.properties dell'utente), altrimenti quella di FlorisBoard
+    ndkVersion = providers.gradleProperty("poldo.ndkVersion").getOrElse(tools.versions.ndk.get())
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11

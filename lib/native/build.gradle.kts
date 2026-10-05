@@ -30,7 +30,8 @@ kotlin {
 configure<LibraryExtension> {
     namespace = "org.florisboard.libnative"
     compileSdk = providers.gradleProperty("projectCompileSdk").get().toInt()
-    ndkVersion = tools.versions.ndk.get()
+    // Versioni locali facoltative (gradle.properties dell'utente), altrimenti quelle di FlorisBoard
+    ndkVersion = providers.gradleProperty("poldo.ndkVersion").getOrElse(tools.versions.ndk.get())
 
     defaultConfig {
         minSdk = providers.gradleProperty("projectMinSdk").get().toInt()
@@ -70,7 +71,7 @@ configure<LibraryExtension> {
 
     externalNativeBuild {
         cmake {
-            version = tools.versions.cmake.get()
+            version = providers.gradleProperty("poldo.cmakeVersion").getOrElse(tools.versions.cmake.get())
             path("src/main/rust/CMakeLists.txt")
         }
     }
