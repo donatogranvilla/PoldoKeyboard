@@ -8,6 +8,12 @@
     <!-- Permission needed to create notifications on devices running Android 13+ -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
+    <!-- Permission needed for live microphone recording in Local AI subsystem -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+
+    <!-- Permission strictly used for voluntary offline model downloads -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+
     <!-- Android 11+ only: Define that FlorisBoard requests to see all apps that
           ship with an IME or Spell Check service. This is used to guide the user
           in the Settings Ui why FlorisBoard may not be working.
@@ -127,6 +133,20 @@
                 <action android:name="android.intent.action.SEND"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <data android:mimeType="image/*"/>
+            </intent-filter>
+        </activity>
+
+        <!-- Transcribe Audio Share Activity for WhatsApp / Android Share Target -->
+        <activity
+            android:name="dev.patrickgold.florisboard.ime.voice.TranscribeShareActivity"
+            android:icon="@mipmap/floris_app_icon"
+            android:label="@string/localai_share_action_label"
+            android:theme="@style/FlorisAppTheme.Transparent"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="audio/*"/>
             </intent-filter>
         </activity>
 

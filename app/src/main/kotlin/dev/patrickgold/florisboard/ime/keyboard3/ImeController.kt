@@ -396,8 +396,17 @@ class ImeController(
                 ImeActions.ToggleFloatingWindow -> windowController?.actions?.toggleFloatingWindow()
                 ImeActions.ToggleResizeMode -> windowController?.editor?.toggleEnabled()
                 ImeActions.CompactLayoutToLeft -> windowController?.actions?.compactLayoutToLeft()
-                ImeActions.CompactLayoutToRight -> windowController?.actions?.compactLayoutToRight()
-                ImeActions.ExternalVoiceInput -> FlorisImeService.switchToVoiceInputMethod()
+                ImeActions.ExternalVoiceInput -> {
+                    state = state.copy(
+                        flags = state.flags.withImeUiMode(
+                            if (state.flags.imeUiMode == ImeUiMode.VOICE_TRANSCRIPTION) {
+                                ImeUiMode.TEXT
+                            } else {
+                                ImeUiMode.VOICE_TRANSCRIPTION
+                            }
+                        ),
+                    )
+                }
                 else -> super.emitDescriptor(descriptor)
             }
             reevaluateInputShiftState()

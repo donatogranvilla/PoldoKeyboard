@@ -1,8 +1,8 @@
 [versions]
 buildTools = "36.0.0"
-cmake = "4.1.2"
+cmake = "4.3.1"
 jdk = "17"
-ndk = "29.0.14206865"
+ndk = "27.2.12479018"
 rustup = "1.28.2"
 rustToolchain = "1.93.0"
 

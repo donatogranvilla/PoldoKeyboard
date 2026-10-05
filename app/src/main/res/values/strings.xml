@@ -1,5 +1,10 @@
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
-    <string name="app_name">FlorisBoard</string>
+    <!-- Main Application Name (Modificabile in un solo punto per rebranding) -->
+    <string name="app_name">LocalAI Keyboard</string>
+    <string name="localai_brand_name">LocalAI</string>
+    <string name="localai_app_name">LocalAI Keyboard</string>
+    <string name="localai_transcriber_title">LocalAI Transcriber</string>
+    <string name="localai_share_action_label">Trascrivi con LocalAI</string>
 
     <string name="key_popup__threedots_alt" comment="Content description for the three-dots icon in a key popup">Three-dot icon. If visible, indicates that more letters can be used if longer pressed.</string>
 

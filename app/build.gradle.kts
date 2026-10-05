@@ -215,6 +215,7 @@ dependencies {
     implementation(projects.lib.kotlin)
     implementation(projects.lib.native)
     implementation(projects.lib.snygg)
+    implementation(projects.lib.localai)
 
     testImplementation(libs.kotest.assertions.core)
     testImplementation(libs.kotest.property)
