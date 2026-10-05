@@ -2,28 +2,28 @@ package org.florisboard.lib.localai.model
 
 import android.content.Context
 import android.net.Uri
+import android.provider.OpenableColumns
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.florisboard.lib.localai.engine.ModelloInstallato
 import org.florisboard.lib.localai.engine.TipoMotore
 import java.io.File
 import java.io.FileOutputStream
-import java.net.HttpURLConnection
-import java.net.URL
 import java.security.MessageDigest
 
 /**
- * Gestore dei modelli vocali offline: download, storage locale protetto,
- * verifica integrità SHA-256, cambio modello attivo e importazione modelli personalizzati.
+ * Gestore dei modelli vocali offline: import da file con verifica SHA-256,
+ * storage locale protetto e cambio del modello attivo.
  *
- * Tutti i modelli risiedono localmente in [Context.getFilesDir]/localai_models/.
- * La rete internet viene utilizzata ESCLUSIVAMENTE quando l'utente preme esplicitamente "Scarica".
+ * L'app non accede alla rete: i modelli si scaricano dal browser e poi si importano.
+ * Risiedono in [Context.getNoBackupFilesDir]/modelli/, esclusi dal backup automatico
+ * perché grandi e reimportabili.
  */
 class ModelManager(private val context: Context) {
     private val prefs = context.getSharedPreferences("localai_settings", Context.MODE_PRIVATE)
 
     private val modelsDir: File
-        get() = File(context.filesDir, "localai_models").apply {
+        get() = File(context.noBackupFilesDir, "modelli").apply {
             if (!exists()) mkdirs()
         }
 
@@ -65,17 +65,7 @@ class ModelManager(private val context: Context) {
         } ?: emptyArray()
 
         for (file in customFiles) {
-            list.add(
-                ModelloInstallato(
-                    id = file.nameWithoutExtension,
-                    nome = file.nameWithoutExtension.replace("_", " ").replace("-", " ").capitalizeWords(),
-                    percorsoFile = file,
-                    dimensioneByte = file.length(),
-                    tipo = TipoMotore.WHISPER_CPP,
-                    ramConsigliataMb = 500,
-                    descrizione = "Modello personalizzato importato dall'utente.",
-                )
-            )
+            list.add(creaModelloPersonalizzato(file))
         }
 
         return list
@@ -119,95 +109,129 @@ class ModelManager(private val context: Context) {
     }
 
     /**
-     * Scarica un modello dal catalogo in modo sicuro, con progress callback e verifica integrità.
+     * Importa un file modello scelto con il selettore di sistema. Il file viene copiato a blocchi
+     * in memoria privata calcolandone lo SHA-256 nello stesso passaggio, poi riconosciuto
+     * confrontando l'impronta con il catalogo.
+     * @param sorgente URI restituito dal selettore di sistema.
+     * @param consentiFuoriCatalogo true per accettare anche file assenti dal catalogo (opzioni sviluppatore).
+     * @param avanzamento Frazione copiata tra 0 e 1, notificata solo se il provider espone la dimensione.
+     * @return Il modello installato e reso attivo, oppure l'errore che ha fermato l'import.
      */
-    suspend fun downloadModel(
-        model: ModelInfo,
-        onProgress: ((Float) -> Unit)? = null
+    suspend fun importaModello(
+        sorgente: Uri,
+        consentiFuoriCatalogo: Boolean,
+        avanzamento: (Float) -> Unit = {},
     ): Result<ModelloInstallato> = withContext(Dispatchers.IO) {
         runCatching {
-            val destinationFile = getModelFile(model)
-            val tempFile = File(modelsDir, "${model.id}.bin.tmp")
+            val dimensioneSorgente = leggiDimensione(sorgente)
+            verificaSpazioLibero(dimensioneSorgente)
 
-            if (tempFile.exists()) tempFile.delete()
-
-            val url = URL(model.downloadUrl)
-            val connection = url.openConnection() as HttpURLConnection
-            connection.connectTimeout = 15000
-            connection.readTimeout = 30000
-            connection.requestMethod = "GET"
-            connection.connect()
-
-            if (connection.responseCode !in 200..299) {
-                throw IllegalStateException("Download fallito (HTTP ${connection.responseCode}: ${connection.responseMessage})")
-            }
-
-            val totalBytes = connection.contentLength.toLong().let {
-                if (it > 0) it else model.sizeBytes
-            }
-
-            val digest = MessageDigest.getInstance("SHA-256")
-            var downloadedBytes = 0L
-
-            connection.inputStream.use { input ->
-                FileOutputStream(tempFile).use { output ->
-                    val buffer = ByteArray(16384)
-                    var bytesRead: Int
-                    while (input.read(buffer).also { bytesRead = it } != -1) {
-                        output.write(buffer, 0, bytesRead)
-                        digest.update(buffer, 0, bytesRead)
-                        downloadedBytes += bytesRead
-
-                        if (totalBytes > 0) {
-                            val progress = (downloadedBytes.toFloat() / totalBytes.toFloat()).coerceIn(0.0f, 1.0f)
-                            onProgress?.invoke(progress)
-                        }
+            val fileTemporaneo = File(modelsDir, "import.tmp")
+            try {
+                val impronta = copiaCalcolandoImpronta(sorgente, fileTemporaneo, dimensioneSorgente, avanzamento)
+                val modelloCatalogo = ModelCatalog.findBySha256(impronta)
+                when {
+                    modelloCatalogo != null -> installa(fileTemporaneo, getModelFile(modelloCatalogo)) { file ->
+                        modelloCatalogo.toModelloInstallato(file)
                     }
+                    consentiFuoriCatalogo -> installa(fileTemporaneo, File(modelsDir, "personalizzato-${impronta.take(12)}.bin")) { file ->
+                        creaModelloPersonalizzato(file)
+                    }
+                    else -> throw ModelloNonRiconosciutoException(impronta)
                 }
+            } finally {
+                // Dopo un'installazione riuscita il file è già stato spostato e qui non resta nulla da cancellare
+                fileTemporaneo.delete()
             }
-
-            // Spostamento atomico nel file definitivo
-            if (destinationFile.exists()) destinationFile.delete()
-            if (!tempFile.renameTo(destinationFile)) {
-                throw IllegalStateException("Impossibile salvare il modello scaricato nella directory locale.")
-            }
-
-            // Imposta automaticamente come attivo se è il primo modello scaricato
-            if (prefs.getString("active_model_id", null) == null) {
-                setActiveModelId(model.id)
-            }
-
-            model.toModelloInstallato(destinationFile)
         }
     }
 
     /**
-     * Importa un file GGML Whisper (.bin) da memoria esterna (es. Download).
+     * Legge la dimensione del file scelto, se il provider la espone.
      */
-    suspend fun importCustomModel(sourceUri: Uri, customName: String): Result<ModelloInstallato> = withContext(Dispatchers.IO) {
-        runCatching {
-            val cleanId = "custom-" + customName.lowercase().replace(Regex("[^a-z0-9_-]"), "_")
-            val destFile = File(modelsDir, "$cleanId.bin")
-
-            context.contentResolver.openInputStream(sourceUri)?.use { input ->
-                FileOutputStream(destFile).use { output ->
-                    input.copyTo(output)
-                }
-            } ?: throw IllegalStateException("Impossibile leggere il file selezionato.")
-
-            val installed = ModelloInstallato(
-                id = cleanId,
-                nome = customName,
-                percorsoFile = destFile,
-                dimensioneByte = destFile.length(),
-                tipo = TipoMotore.WHISPER_CPP,
-                ramConsigliataMb = 500,
-                descrizione = "Modello Whisper personalizzato (.bin)"
-            )
-
-            setActiveModelId(cleanId)
-            installed
+    private fun leggiDimensione(sorgente: Uri): Long? {
+        return context.contentResolver.query(sorgente, arrayOf(OpenableColumns.SIZE), null, null, null)?.use { cursore ->
+            val colonna = cursore.getColumnIndex(OpenableColumns.SIZE)
+            if (cursore.moveToFirst() && colonna >= 0 && !cursore.isNull(colonna)) cursore.getLong(colonna) else null
         }
+    }
+
+    /**
+     * Interrompe l'import se in memoria privata non c'è posto per il file più un margine di sicurezza.
+     */
+    private fun verificaSpazioLibero(dimensioneRichiesta: Long?) {
+        if (dimensioneRichiesta == null) return
+        val spazioNecessario = dimensioneRichiesta + MARGINE_SPAZIO_BYTE
+        val spazioLibero = modelsDir.usableSpace
+        if (spazioLibero < spazioNecessario) {
+            throw IllegalStateException(
+                "Spazio insufficiente: servono ${spazioNecessario / BYTE_PER_MB} MB, liberi ${spazioLibero / BYTE_PER_MB} MB."
+            )
+        }
+    }
+
+    /**
+     * Copia la sorgente nel file di destinazione calcolandone lo SHA-256 nello stesso passaggio.
+     * @return L'impronta SHA-256 in esadecimale minuscolo.
+     */
+    private fun copiaCalcolandoImpronta(
+        sorgente: Uri,
+        destinazione: File,
+        dimensioneAttesa: Long?,
+        avanzamento: (Float) -> Unit,
+    ): String {
+        val digest = MessageDigest.getInstance("SHA-256")
+        val flussoIngresso = context.contentResolver.openInputStream(sorgente)
+            ?: throw IllegalStateException("Impossibile leggere il file selezionato.")
+        flussoIngresso.use { ingresso ->
+            FileOutputStream(destinazione).use { uscita ->
+                val buffer = ByteArray(DIMENSIONE_BLOCCO)
+                var byteCopiati = 0L
+                while (true) {
+                    val letti = ingresso.read(buffer)
+                    if (letti < 0) break
+                    uscita.write(buffer, 0, letti)
+                    digest.update(buffer, 0, letti)
+                    byteCopiati += letti
+                    if (dimensioneAttesa != null && dimensioneAttesa > 0) {
+                        avanzamento((byteCopiati.toFloat() / dimensioneAttesa).coerceIn(0f, 1f))
+                    }
+                }
+            }
+        }
+        return digest.digest().joinToString("") { "%02x".format(it) }
+    }
+
+    /**
+     * Sposta il file verificato nella posizione definitiva e rende attivo il modello.
+     */
+    private fun installa(
+        fileVerificato: File,
+        destinazione: File,
+        creaModello: (File) -> ModelloInstallato,
+    ): ModelloInstallato {
+        if (destinazione.exists()) destinazione.delete()
+        if (!fileVerificato.renameTo(destinazione)) {
+            throw IllegalStateException("Impossibile salvare il modello nella memoria privata.")
+        }
+        val modello = creaModello(destinazione)
+        setActiveModelId(modello.id)
+        return modello
+    }
+
+    /**
+     * Descrive un file fuori catalogo come modello whisper.cpp personalizzato.
+     */
+    private fun creaModelloPersonalizzato(file: File): ModelloInstallato {
+        return ModelloInstallato(
+            id = file.nameWithoutExtension,
+            nome = file.nameWithoutExtension.replace("_", " ").replace("-", " ").capitalizeWords(),
+            percorsoFile = file,
+            dimensioneByte = file.length(),
+            tipo = TipoMotore.WHISPER_CPP,
+            ramConsigliataMb = 500,
+            descrizione = "Modello personalizzato importato dall'utente.",
+        )
     }
 
     /**
@@ -235,7 +259,24 @@ class ModelManager(private val context: Context) {
             word.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
         }
     }
+
+    private companion object {
+        /** Spazio da lasciare libero oltre al modello, per non saturare la memoria del telefono. */
+        const val MARGINE_SPAZIO_BYTE = 50L * 1024 * 1024
+
+        /** Dimensione dei blocchi letti durante la copia. */
+        const val DIMENSIONE_BLOCCO = 1024 * 1024
+
+        const val BYTE_PER_MB = 1024L * 1024
+    }
 }
+
+/**
+ * Il file importato non corrisponde a nessun modello del catalogo.
+ * @property impronta SHA-256 calcolato sul file, utile per riconoscerlo in seguito.
+ */
+class ModelloNonRiconosciutoException(val impronta: String) :
+    IllegalArgumentException("Il file non corrisponde a nessun modello del catalogo (SHA-256 $impronta).")
 
 /** Alias italiano */
 typealias GestoreModelli = ModelManager

@@ -24,16 +24,16 @@ In accordance with project requirements, every dependency is audited to ensure c
 
 | Model Identifier | Base Architecture | Author / Source | Format | Size (approx.) | License | Commercial Use | Checksum (SHA256) |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| `whisper-tiny-q5_1` | OpenAI Whisper Tiny | OpenAI / ggerganov | GGML Q5_1 | ~32 MB | MIT | **Yes** | Verified upon download |
-| `whisper-base-q5_1` | OpenAI Whisper Base | OpenAI / ggerganov | GGML Q5_1 | ~57 MB | MIT | **Yes** | Verified upon download |
-| `whisper-small-q5_1` | OpenAI Whisper Small | OpenAI / ggerganov | GGML Q5_1 | ~180 MB | MIT | **Yes** | Verified upon download |
-| `whisper-base` | OpenAI Whisper Base | OpenAI / ggerganov | GGML F16 | ~142 MB | MIT | **Yes** | Verified upon download |
-| `whisper-small` | OpenAI Whisper Small | OpenAI / ggerganov | GGML F16 | ~466 MB | MIT | **Yes** | Verified upon download |
+| `whisper-tiny-q5_1` | OpenAI Whisper Tiny | OpenAI / ggerganov | GGML Q5_1 | ~32 MB | MIT | **Yes** | Verified on import |
+| `whisper-base-q5_1` | OpenAI Whisper Base | OpenAI / ggerganov | GGML Q5_1 | ~57 MB | MIT | **Yes** | Verified on import |
+| `whisper-small-q5_1` | OpenAI Whisper Small | OpenAI / ggerganov | GGML Q5_1 | ~180 MB | MIT | **Yes** | Verified on import |
+| `whisper-base` | OpenAI Whisper Base | OpenAI / ggerganov | GGML F16 | ~142 MB | MIT | **Yes** | Verified on import |
+| `whisper-small` | OpenAI Whisper Small | OpenAI / ggerganov | GGML F16 | ~466 MB | MIT | **Yes** | Verified on import |
 
 ---
 
 ## 3. Privacy & Offline Compliance
 
 - **No Remote Telemetry**: No Firebase, no Crashlytics, no remote telemetry SDKs.
-- **Local Storage**: Downloaded models are stored in private internal storage (`context.filesDir/models/`).
+- **Local Storage**: Models are downloaded by the user with a browser, imported through the system file picker, verified against their SHA-256 and stored in private no-backup storage (`context.noBackupFilesDir/modelli/`). The app has no INTERNET permission.
 - **No Cloud Inference**: Audio data processed through Android `MediaCodec` and native ASR remains strictly on-device in volatile memory and is never transmitted over any network interface.

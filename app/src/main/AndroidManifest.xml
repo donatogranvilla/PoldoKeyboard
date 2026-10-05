@@ -11,9 +11,6 @@
     <!-- Permission needed for live microphone recording in Local AI subsystem -->
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
 
-    <!-- Permission strictly used for voluntary offline model downloads -->
-    <uses-permission android:name="android.permission.INTERNET"/>
-
     <!-- Android 11+ only: Define that FlorisBoard requests to see all apps that
           ship with an IME or Spell Check service. This is used to guide the user
           in the Settings Ui why FlorisBoard may not be working.

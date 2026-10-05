@@ -1,5 +1,6 @@
 package dev.patrickgold.florisboard.ime.voice
 
+import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -22,10 +23,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import dev.patrickgold.florisboard.app.FlorisPreferenceStore
+import dev.patrickgold.jetpref.datastore.model.collectAsState
 import kotlinx.coroutines.launch
 import org.florisboard.lib.localai.LocalAiManager
 import org.florisboard.lib.localai.model.ModelCatalog
 import org.florisboard.lib.localai.model.ModelInfo
+import org.florisboard.lib.localai.model.ModelloNonRiconosciutoException
 
 @Composable
 fun ModelManagementDialog(
@@ -38,32 +42,47 @@ fun ModelManagementDialog(
     val modelManager = localAiManager.modelManager
     val hwProfile = remember { modelManager.getHardwareProfile() }
 
+    val prefs by FlorisPreferenceStore
+    val devtoolsAttivi by prefs.devtools.enabled.collectAsState()
+
     var activeModelId by remember { mutableStateOf(modelManager.getActiveModelId()) }
-    var downloadingModelId by remember { mutableStateOf<String?>(null) }
-    var downloadProgress by remember { mutableFloatStateOf(0.0f) }
-    var statusMessage by remember { mutableStateOf<String?>(null) }
+    var avanzamentoImport by remember { mutableStateOf<Float?>(null) }
     var showBenchmarkDialog by remember { mutableStateOf(false) }
 
-    // Launcher per importare un modello .bin personalizzato dalla memoria del telefono
+    // Selettore di sistema per importare il file di un modello scaricato dal browser
     val filePickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
+        contract = ActivityResultContracts.OpenDocument()
     ) { uri: Uri? ->
         if (uri != null) {
             scope.launch {
-                statusMessage = "Importazione modello in corso..."
-                val result = modelManager.importCustomModel(uri, "Modello Personalizzato")
-                if (result.isSuccess) {
-                    val imported = result.getOrThrow()
-                    activeModelId = imported.id
-                    localAiManager.switchModel(imported.id)
-                    onModelSelected(imported.id)
-                    Toast.makeText(context, "Modello importato e attivato!", Toast.LENGTH_SHORT).show()
-                } else {
-                    Toast.makeText(context, "Errore importazione: ${result.exceptionOrNull()?.message}", Toast.LENGTH_LONG).show()
+                avanzamentoImport = 0f
+                val result = modelManager.importaModello(uri, consentiFuoriCatalogo = devtoolsAttivi) { frazione ->
+                    avanzamentoImport = frazione
                 }
-                statusMessage = null
+                avanzamentoImport = null
+                result.onSuccess { importato ->
+                    activeModelId = importato.id
+                    localAiManager.switchModel(importato.id)
+                    onModelSelected(importato.id)
+                    Toast.makeText(context, "${importato.nome} importato e attivato.", Toast.LENGTH_SHORT).show()
+                }.onFailure { errore ->
+                    val messaggio = if (errore is ModelloNonRiconosciutoException) {
+                        "File non riconosciuto: non corrisponde a nessun modello del catalogo."
+                    } else {
+                        "Errore importazione: ${errore.message}"
+                    }
+                    Toast.makeText(context, messaggio, Toast.LENGTH_LONG).show()
+                }
             }
         }
+    }
+
+    /**
+     * Apre nel browser la pagina di download del modello: la rete la usa il browser, non la tastiera.
+     */
+    fun apriPaginaDownload(model: ModelInfo) {
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(model.downloadUrl)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        context.startActivity(intent)
     }
 
     Dialog(onDismissRequest = onDismiss) {
@@ -98,7 +117,7 @@ fun ModelManagementDialog(
                 }
 
                 Text(
-                    text = "Scegli il modello in base alla potenza del tuo dispositivo. Tutto viene eseguito 100% offline.",
+                    text = "Scarica il file del modello dal browser, poi importalo qui: la tastiera non usa la rete e verifica ogni file.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(bottom = 12.dp)
@@ -137,22 +156,22 @@ fun ModelManagementDialog(
                     }
                 }
 
-                // Download status banner se in corso
-                if (downloadingModelId != null) {
+                // Avanzamento della copia mentre un modello viene importato e verificato
+                avanzamentoImport?.let { frazione ->
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 8.dp)
                     ) {
                         Text(
-                            text = "Download modello in corso (${(downloadProgress * 100).toInt()}%)...",
+                            text = "Import e verifica in corso (${(frazione * 100).toInt()}%)...",
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.primary
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         LinearProgressIndicator(
-                            progress = { downloadProgress },
+                            progress = { frazione },
                             modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp))
                         )
                     }
@@ -165,7 +184,7 @@ fun ModelManagementDialog(
                         .verticalScroll(rememberScrollState())
                 ) {
                     for (model in ModelCatalog.ALL_MODELS) {
-                        val isDownloaded = remember(activeModelId, downloadingModelId) {
+                        val isDownloaded = remember(activeModelId, avanzamentoImport) {
                             modelManager.isModelDownloaded(model)
                         }
                         val isActive = activeModelId == model.id
@@ -176,7 +195,6 @@ fun ModelManagementDialog(
                             isDownloaded = isDownloaded,
                             isActive = isActive,
                             isRecommended = isRecommended,
-                            isDownloading = downloadingModelId == model.id,
                             onSelect = {
                                 activeModelId = model.id
                                 scope.launch {
@@ -184,24 +202,7 @@ fun ModelManagementDialog(
                                     onModelSelected(model.id)
                                 }
                             },
-                            onDownload = {
-                                downloadingModelId = model.id
-                                downloadProgress = 0.05f
-                                scope.launch {
-                                    val result = modelManager.downloadModel(model) { p ->
-                                        downloadProgress = p
-                                    }
-                                    downloadingModelId = null
-                                    if (result.isSuccess) {
-                                        activeModelId = model.id
-                                        localAiManager.switchModel(model.id)
-                                        onModelSelected(model.id)
-                                        Toast.makeText(context, "${model.name} scaricato e attivato!", Toast.LENGTH_SHORT).show()
-                                    } else {
-                                        Toast.makeText(context, "Errore download: ${result.exceptionOrNull()?.message}", Toast.LENGTH_LONG).show()
-                                    }
-                                }
-                            },
+                            onApriPaginaDownload = { apriPaginaDownload(model) },
                             onDelete = {
                                 modelManager.deleteModel(model.id)
                                 activeModelId = modelManager.getActiveModelId()
@@ -213,13 +214,14 @@ fun ModelManagementDialog(
 
                     // Tasto Importa Modello da file
                     OutlinedButton(
-                        onClick = { filePickerLauncher.launch("*/*") },
+                        onClick = { filePickerLauncher.launch(arrayOf("*/*")) },
+                        enabled = avanzamentoImport == null,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 8.dp),
                         shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text("📁 Importa file modello (.bin) da memoria")
+                        Text("📁 Importa il file di un modello scaricato")
                     }
                 }
 
@@ -264,9 +266,8 @@ private fun ModelCardItem(
     isDownloaded: Boolean,
     isActive: Boolean,
     isRecommended: Boolean,
-    isDownloading: Boolean,
     onSelect: () -> Unit,
-    onDownload: () -> Unit,
+    onApriPaginaDownload: () -> Unit,
     onDelete: () -> Unit
 ) {
     val borderColor = when {
@@ -357,7 +358,7 @@ private fun ModelCardItem(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // Azioni: Scarica / Attiva / Elimina
+            // Azioni: pagina di download / Attiva / Elimina
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End,
@@ -392,14 +393,13 @@ private fun ModelCardItem(
                         }
                     }
                 } else {
-                    Button(
-                        onClick = onDownload,
-                        enabled = !isDownloading,
+                    OutlinedButton(
+                        onClick = onApriPaginaDownload,
                         modifier = Modifier.height(36.dp),
                         shape = RoundedCornerShape(8.dp)
                     ) {
                         Text(
-                            text = if (isDownloading) "Download..." else "Scarica (${model.formattedSize})",
+                            text = "Scarica dal browser (${model.formattedSize})",
                             fontSize = 12.sp
                         )
                     }

@@ -24,7 +24,7 @@ graph TD
         G[MotoreTrascrizione - Interfaccia Intercambiabile]
         H[MotoreWhisperCpp - JNI C++ Core]
         I[MotoreMock - Test e Fallback]
-        J[ModelManager - Catalogo & Download Offline]
+        J[ModelManager - Catalogo & Import verificato]
         K[TextPostProcessor - Punteggiatura & Maiuscole]
         L[BenchmarkSuite - Test Scenari Reali WhatsApp]
     end

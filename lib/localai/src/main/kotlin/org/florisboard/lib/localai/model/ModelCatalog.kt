@@ -11,8 +11,8 @@ object ModelCatalog {
         id = "whisper-tiny-q5_1",
         name = "Whisper Tiny (Q5_1)",
         engineType = EngineType.WHISPER_CPP,
-        sizeBytes = 31_000_000L,
-        sha256 = "3239e2499ddc0384a6c6e7f7ab2c7b52da0e2e9cff545b7367e9b04f76269df6",
+        sizeBytes = 32_152_673L,
+        sha256 = "818710568da3ca15689e31a743197b520007872ff9576237bda97bd1b469c3d7",
         downloadUrl = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny-q5_1.bin",
         license = "MIT",
         qualityLevel = "Ultra-Leggero (Minimo consumo RAM)",
@@ -27,8 +27,8 @@ object ModelCatalog {
         id = "whisper-base-q5_1",
         name = "Whisper Base (Q5_1)",
         engineType = EngineType.WHISPER_CPP,
-        sizeBytes = 57_000_000L,
-        sha256 = "c24ec494a8f9f743c4a04e578c772e44d3ba928a30cf7e2f50c0c6b12a83e0c0",
+        sizeBytes = 59_707_625L,
+        sha256 = "422f1ae452ade6f30a004d7e5c6a43195e4433bc370bf23fac9cc591f01a8898",
         downloadUrl = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base-q5_1.bin",
         license = "MIT",
         qualityLevel = "Consigliato (Bilanciato)",
@@ -43,8 +43,8 @@ object ModelCatalog {
         id = "whisper-small-q5_1",
         name = "Whisper Small (Q5_1)",
         engineType = EngineType.WHISPER_CPP,
-        sizeBytes = 182_000_000L,
-        sha256 = "91a5e1e07ca4dc2d67a6d860e6f212fb9471131792bc44360e22709e99a80e1b",
+        sizeBytes = 190_085_487L,
+        sha256 = "ae85e4a935d7a567bd102fe55afc16bb595bdb618e11b2fc7591bc08120411bb",
         downloadUrl = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small-q5_1.bin",
         license = "MIT",
         qualityLevel = "Massima Accuratezza (Audio rumorosi e nomi propri)",
@@ -65,6 +65,15 @@ object ModelCatalog {
 
     fun findById(id: String): ModelInfo? {
         return ALL_MODELS.find { it.id == id }
+    }
+
+    /**
+     * Cerca nel catalogo il modello con l'impronta indicata: serve a riconoscere un file importato.
+     * @param sha256 Impronta SHA-256 in esadecimale, maiuscole o minuscole.
+     * @return Il modello corrispondente, oppure null se il file non è nel catalogo.
+     */
+    fun findBySha256(sha256: String): ModelInfo? {
+        return ALL_MODELS.find { it.sha256.equals(sha256, ignoreCase = true) }
     }
 }
 
