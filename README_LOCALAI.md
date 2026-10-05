@@ -16,7 +16,7 @@ Il progetto è concepito specificamente per:
 ```mermaid
 graph TD
     A[WhatsApp / Note Vocale Opus] -->|Condividi / ACTION_SEND| B[TranscribeShareActivity]
-    C[Tastiera FlorisBoard Smartbar] -->|Attiva| D[VoiceTranscriptionLayout]
+    C[Azione Trascrivi della Smartbar] -->|Apre| D[VoiceTranscriptionLayout]
 
     subgraph "Modulo :lib:localai"
         E[AudioDecoder - MediaCodec & MediaExtractor]
@@ -52,7 +52,7 @@ graph TD
   - **"Condividi / Invia"**: inoltra il testo a qualsiasi contatto o applicazione.
 
 ### 2. Pannello di trascrizione nella tastiera
-- Si apre dalla Smartbar della tastiera (pannello `VoiceTranscriptionLayout`).
+- Si apre con l'azione **Trascrivi** della Smartbar (pannello `VoiceTranscriptionLayout`). Il tasto voce resta quello di FlorisBoard e passa alla tastiera vocale di sistema.
 - Trascrive qualsiasi file audio locale (`.opus`, `.m4a`, `.wav`, `.mp3`).
 - La dettatura dal microfono è rimandata a dopo la v1: l'app non chiede il permesso `RECORD_AUDIO`.
 - Selettore lingua rapido: **Auto (Rileva)**, Italiano, English, Español, Français, Deutsch, Português.

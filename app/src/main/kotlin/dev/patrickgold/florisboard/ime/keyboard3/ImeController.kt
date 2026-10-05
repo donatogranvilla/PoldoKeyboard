@@ -371,6 +371,11 @@ class ImeController(
                         flags = state.flags.withImeUiMode(ImeUiMode.CLIPBOARD),
                     )
                 }
+                ImeActions.ShowTranscriptionPanel -> {
+                    state = state.copy(
+                        flags = state.flags.withImeUiMode(ImeUiMode.VOICE_TRANSCRIPTION),
+                    )
+                }
                 ImeActions.Undo -> state.editor.performUndo()
                 ImeActions.Redo -> state.editor.performRedo()
                 ImeActions.Settings -> FlorisImeService.launchSettings()
@@ -396,17 +401,8 @@ class ImeController(
                 ImeActions.ToggleFloatingWindow -> windowController?.actions?.toggleFloatingWindow()
                 ImeActions.ToggleResizeMode -> windowController?.editor?.toggleEnabled()
                 ImeActions.CompactLayoutToLeft -> windowController?.actions?.compactLayoutToLeft()
-                ImeActions.ExternalVoiceInput -> {
-                    state = state.copy(
-                        flags = state.flags.withImeUiMode(
-                            if (state.flags.imeUiMode == ImeUiMode.VOICE_TRANSCRIPTION) {
-                                ImeUiMode.TEXT
-                            } else {
-                                ImeUiMode.VOICE_TRANSCRIPTION
-                            }
-                        ),
-                    )
-                }
+                ImeActions.CompactLayoutToRight -> windowController?.actions?.compactLayoutToRight()
+                ImeActions.ExternalVoiceInput -> FlorisImeService.switchToVoiceInputMethod()
                 else -> super.emitDescriptor(descriptor)
             }
             reevaluateInputShiftState()

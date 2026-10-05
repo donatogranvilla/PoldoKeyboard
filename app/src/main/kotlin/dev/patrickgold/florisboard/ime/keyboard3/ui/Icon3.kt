@@ -46,6 +46,7 @@ import androidx.compose.material.icons.filled.SelectAll
 import androidx.compose.material.icons.filled.SentimentSatisfiedAlt
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SpaceBar
+import androidx.compose.material.icons.filled.Subtitles
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -154,6 +155,7 @@ fun staticIcon3(value: K3Descriptor, context: Context): ImageVector? {
         ImeIcons.ClipboardPanel -> Icons.AutoMirrored.Outlined.Assignment
         ImeIcons.MediaPanel -> Icons.Default.SentimentSatisfiedAlt
         ImeIcons.TextPanel -> context.vectorResource(R.drawable.ic_abc)
+        ImeIcons.TranscriptionPanel -> Icons.Default.Subtitles
         ImeIcons.Noop -> Icons.Default.Close
         ImeIcons.Redo -> Icons.AutoMirrored.Filled.Redo
         ImeIcons.Shift -> context.vectorResource(R.drawable.ic_shift_off)

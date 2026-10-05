@@ -51,6 +51,7 @@ object ImeActions {
     val ShowTextPanel = flAction("show_text_panel")
     val ShowMediaPanel = flAction("show_media_panel")
     val ShowClipboardPanel = flAction("show_clipboard_panel")
+    val ShowTranscriptionPanel = flAction("show_transcription_panel")
 
     val Undo = flAction("undo")
     val Redo = flAction("redo")

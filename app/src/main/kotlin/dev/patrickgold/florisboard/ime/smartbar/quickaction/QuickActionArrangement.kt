@@ -86,6 +86,7 @@ data class QuickActionArrangement(
         val Default = QuickActionArrangement(
             stickyAction = QuickAction.InsertK3Descriptor(ImeActions.ExternalVoiceInput),
             dynamicActions = listOf(
+                QuickAction.InsertK3Descriptor(ImeActions.ShowTranscriptionPanel),
                 QuickAction.InsertK3Descriptor(ImeActions.ToggleFloatingWindow),
                 QuickAction.InsertK3Descriptor(ImeActions.ToggleResizeMode),
                 QuickAction.InsertK3Descriptor(ImeActions.Undo),
