@@ -117,25 +117,4 @@ class MotoreTrascrizioneTest {
         assertTrue(tiny.fulminiVelocita >= small.fulminiVelocita)
         assertTrue(small.stelleAccuratezza >= tiny.stelleAccuratezza)
     }
-
-    @Test
-    fun testTypeAdapters() {
-        val opzioni = OpzioniTrascrizione(
-            lingua = "it",
-            formattaPunteggiatura = true,
-            numThread = 6,
-            temperatura = 0.2f,
-            traduciInInglese = true
-        )
-        val legacyOptions = opzioni.toTranscriptionOptions()
-        assertEquals("it", legacyOptions.language)
-        assertTrue(legacyOptions.formatPunctuation)
-        assertEquals(6, legacyOptions.threads)
-        assertTrue(legacyOptions.translateToEnglish)
-
-        val back = legacyOptions.toOpzioniTrascrizione()
-        assertEquals(opzioni.lingua, back.lingua)
-        assertEquals(opzioni.formattaPunteggiatura, back.formattaPunteggiatura)
-        assertEquals(opzioni.numThread, back.numThread)
-    }
 }

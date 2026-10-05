@@ -1,7 +1,6 @@
 package org.florisboard.lib.localai.model
 
 import kotlinx.serialization.Serializable
-import org.florisboard.lib.localai.engine.EngineType
 import org.florisboard.lib.localai.engine.ModelloInstallato
 import org.florisboard.lib.localai.engine.TipoMotore
 import java.io.File
@@ -15,7 +14,7 @@ import java.io.File
 data class ModelInfo(
     val id: String,
     val name: String,
-    val engineType: EngineType = EngineType.WHISPER_CPP,
+    val tipoMotore: TipoMotore = TipoMotore.WHISPER_CPP,
     val sizeBytes: Long,
     val sha256: String,
     val downloadUrl: String,
@@ -43,11 +42,7 @@ data class ModelInfo(
             nome = name,
             percorsoFile = file,
             dimensioneByte = if (file.exists()) file.length() else sizeBytes,
-            tipo = when (engineType) {
-                EngineType.WHISPER_CPP -> TipoMotore.WHISPER_CPP
-                EngineType.SHERPA_ONNX -> TipoMotore.SHERPA_ONNX
-                EngineType.MOCK_TEST -> TipoMotore.MOCK
-            },
+            tipo = tipoMotore,
             ramConsigliataMb = ramConsigliataMb,
             descrizione = description,
         )

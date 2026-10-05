@@ -43,8 +43,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.florisboard.lib.compose.stringRes
 import org.florisboard.lib.localai.LocalAiManager
-import org.florisboard.lib.localai.engine.TranscriptionOptions
-import org.florisboard.lib.localai.engine.TranscriptionResult
+import org.florisboard.lib.localai.engine.OpzioniTrascrizione
+import org.florisboard.lib.localai.engine.RisultatoTrascrizione
 
 private data class LangOption(val code: String?, val label: String)
 
@@ -98,14 +98,14 @@ fun VoiceTranscriptionLayout(
         }
     }
 
-    fun handleTranscriptionResult(result: TranscriptionResult) {
+    fun handleTranscriptionResult(result: RisultatoTrascrizione) {
         isProcessing = false
-        resultText = result.text
-        lastDurationMs = result.audioDurationMs
-        lastInferenceMs = result.inferenceTimeMs
+        resultText = result.testo
+        lastDurationMs = result.durataAudioMs
+        lastInferenceMs = result.tempoInferenzaMs
 
-        if (autoCommitEnabled && result.text.isNotBlank()) {
-            commitToActiveField(result.text)
+        if (autoCommitEnabled && result.testo.isNotBlank()) {
+            commitToActiveField(result.testo)
         } else {
             processingStatus = "Trascrizione completata!"
         }
@@ -117,12 +117,12 @@ fun VoiceTranscriptionLayout(
             processingStatus = "Decodifica audio WhatsApp in corso..."
             progress = 0.1f
 
-            val options = TranscriptionOptions(
-                language = selectedLang,
-                formatPunctuation = true
+            val opzioni = OpzioniTrascrizione(
+                lingua = selectedLang,
+                formattaPunteggiatura = true
             )
 
-            val result = localAiManager.transcribeAudioUri(uri, options) { p ->
+            val result = localAiManager.transcribeAudioUri(uri, opzioni) { p ->
                 progress = p
                 processingStatus = "Trascrizione locale Whisper AI (${(p * 100).toInt()}%)..."
             }

@@ -1,6 +1,6 @@
 package org.florisboard.lib.localai.model
 
-import org.florisboard.lib.localai.engine.EngineType
+import org.florisboard.lib.localai.engine.TipoMotore
 
 /**
  * Catalogo dei modelli vocali importabili, con licenza MIT e con impronte SHA-256 e dimensioni
@@ -11,7 +11,7 @@ object ModelCatalog {
     val WHISPER_TINY_Q5 = ModelInfo(
         id = "whisper-tiny-q5_1",
         name = "Whisper Tiny (Q5_1)",
-        engineType = EngineType.WHISPER_CPP,
+        tipoMotore = TipoMotore.WHISPER_CPP,
         sizeBytes = 32_152_673L,
         sha256 = "818710568da3ca15689e31a743197b520007872ff9576237bda97bd1b469c3d7",
         downloadUrl = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny-q5_1.bin",
@@ -27,7 +27,7 @@ object ModelCatalog {
     val WHISPER_BASE_Q5 = ModelInfo(
         id = "whisper-base-q5_1",
         name = "Whisper Base (Q5_1)",
-        engineType = EngineType.WHISPER_CPP,
+        tipoMotore = TipoMotore.WHISPER_CPP,
         sizeBytes = 59_707_625L,
         sha256 = "422f1ae452ade6f30a004d7e5c6a43195e4433bc370bf23fac9cc591f01a8898",
         downloadUrl = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base-q5_1.bin",
@@ -43,7 +43,7 @@ object ModelCatalog {
     val WHISPER_SMALL_Q5 = ModelInfo(
         id = "whisper-small-q5_1",
         name = "Whisper Small (Q5_1)",
-        engineType = EngineType.WHISPER_CPP,
+        tipoMotore = TipoMotore.WHISPER_CPP,
         sizeBytes = 190_085_487L,
         sha256 = "ae85e4a935d7a567bd102fe55afc16bb595bdb618e11b2fc7591bc08120411bb",
         downloadUrl = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small-q5_1.bin",
@@ -60,7 +60,7 @@ object ModelCatalog {
     val WHISPER_MEDIUM_Q5 = ModelInfo(
         id = "whisper-medium-q5_0",
         name = "Whisper Medium (Q5_0)",
-        engineType = EngineType.WHISPER_CPP,
+        tipoMotore = TipoMotore.WHISPER_CPP,
         sizeBytes = 539_212_467L,
         sha256 = "19fea4b380c3a618ec4723c3eef2eb785ffba0d0538cf43f8f235e7b3b34220f",
         downloadUrl = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-medium-q5_0.bin",
@@ -76,7 +76,7 @@ object ModelCatalog {
     val WHISPER_LARGE_V3_TURBO_Q5 = ModelInfo(
         id = "whisper-large-v3-turbo-q5_0",
         name = "Whisper Large v3 Turbo (Q5_0)",
-        engineType = EngineType.WHISPER_CPP,
+        tipoMotore = TipoMotore.WHISPER_CPP,
         sizeBytes = 574_041_195L,
         sha256 = "394221709cd5ad1f40c46e6031ca61bce88931e6e088c188294c6d5a55ffa7e2",
         downloadUrl = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo-q5_0.bin",
@@ -92,7 +92,7 @@ object ModelCatalog {
     val WHISPER_LARGE_V3_TURBO_Q8 = ModelInfo(
         id = "whisper-large-v3-turbo-q8_0",
         name = "Whisper Large v3 Turbo (Q8_0)",
-        engineType = EngineType.WHISPER_CPP,
+        tipoMotore = TipoMotore.WHISPER_CPP,
         sizeBytes = 874_188_075L,
         sha256 = "317eb69c11673c9de1e1f0d459b253999804ec71ac4c23c17ecf5fbe24e259a1",
         downloadUrl = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo-q8_0.bin",
@@ -108,7 +108,7 @@ object ModelCatalog {
     val WHISPER_LARGE_V3_Q5 = ModelInfo(
         id = "whisper-large-v3-q5_0",
         name = "Whisper Large v3 (Q5_0)",
-        engineType = EngineType.WHISPER_CPP,
+        tipoMotore = TipoMotore.WHISPER_CPP,
         sizeBytes = 1_081_140_203L,
         sha256 = "d75795ecff3f83b5faa89d1900604ad8c780abd5739fae406de19f23ecd98ad1",
         downloadUrl = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-q5_0.bin",

@@ -3,6 +3,7 @@ package org.florisboard.lib.localai
 import android.content.Context
 import android.net.Uri
 import org.florisboard.lib.localai.audio.AudioDecoder
+import org.florisboard.lib.localai.audio.AudioSegmenter
 import org.florisboard.lib.localai.engine.*
 import org.florisboard.lib.localai.model.ModelCatalog
 import org.florisboard.lib.localai.model.ModelInfo
@@ -13,8 +14,7 @@ import java.io.File
 /**
  * Coordinatore principale del sottosistema AI Locale.
  * Collega i motori di trascrizione intercambiabili ([MotoreTrascrizione]),
- * il gestore dei modelli ([ModelManager]), il decoder audio per formati WhatsApp/Opus
- * e il registratore vocale.
+ * il gestore dei modelli ([ModelManager]) e il decoder audio per i formati WhatsApp/Opus.
  */
 class LocalAiManager(val context: Context) {
     val modelManager = ModelManager(context)
@@ -63,56 +63,41 @@ class LocalAiManager(val context: Context) {
 
     /**
      * Trascrive un file audio da URI Android (es. ricevuto tramite intent WhatsApp o SAF).
+     * @param avanzamento Frazione completata tra 0 e 1.
      */
     suspend fun transcribeAudioUri(
         uri: Uri,
-        options: TranscriptionOptions = TranscriptionOptions.Default,
-        onProgress: ((Float) -> Unit)? = null
-    ): Result<TranscriptionResult> {
-        ensureModelLoaded()
-        val samplesResult = AudioDecoder.decodeTo16kMono(context, uri)
-        if (samplesResult.isFailure) {
-            return Result.failure(samplesResult.exceptionOrNull()!!)
-        }
-        val samples = samplesResult.getOrThrow()
-        return transcribeRecordedAudio(samples, options, onProgress)
+        opzioni: OpzioniTrascrizione = OpzioniTrascrizione.Predefinite,
+        avanzamento: (Float) -> Unit = {},
+    ): Result<RisultatoTrascrizione> {
+        val campioni = AudioDecoder.decodeTo16kMono(context, uri).getOrElse { return Result.failure(it) }
+        return trascriviCampioni(campioni, opzioni, avanzamento)
     }
 
     /**
      * Trascrive un file audio locale dal filesystem.
+     * @param avanzamento Frazione completata tra 0 e 1.
      */
     suspend fun transcribeAudioFile(
         file: File,
-        options: TranscriptionOptions = TranscriptionOptions.Default,
-        onProgress: ((Float) -> Unit)? = null
-    ): Result<TranscriptionResult> {
-        ensureModelLoaded()
-        val samplesResult = AudioDecoder.decodeTo16kMono(file)
-        if (samplesResult.isFailure) {
-            return Result.failure(samplesResult.exceptionOrNull()!!)
-        }
-        val samples = samplesResult.getOrThrow()
-        return transcribeRecordedAudio(samples, options, onProgress)
+        opzioni: OpzioniTrascrizione = OpzioniTrascrizione.Predefinite,
+        avanzamento: (Float) -> Unit = {},
+    ): Result<RisultatoTrascrizione> {
+        val campioni = AudioDecoder.decodeTo16kMono(file).getOrElse { return Result.failure(it) }
+        return trascriviCampioni(campioni, opzioni, avanzamento)
     }
 
     /**
-     * Trascrive un array di campioni float normalizzati a 16 kHz Mono.
+     * Divide i campioni a 16 kHz mono in segmenti e li trascrive con il motore attivo.
      */
-    suspend fun transcribeRecordedAudio(
-        samples: FloatArray,
-        options: TranscriptionOptions = TranscriptionOptions.Default,
-        onProgress: ((Float) -> Unit)? = null
-    ): Result<TranscriptionResult> {
+    private suspend fun trascriviCampioni(
+        campioni: FloatArray,
+        opzioni: OpzioniTrascrizione,
+        avanzamento: (Float) -> Unit,
+    ): Result<RisultatoTrascrizione> {
         ensureModelLoaded()
         return runCatching {
-            val segmenti = org.florisboard.lib.localai.audio.AudioSegmenter.segmenta(samples)
-            val opzioni = options.toOpzioniTrascrizione()
-            val risultato = activeEngine.trascrivi(
-                segmenti = segmenti,
-                opzioni = opzioni,
-                avanzamento = { progress -> onProgress?.invoke(progress) }
-            )
-            risultato.toTranscriptionResult()
+            activeEngine.trascrivi(AudioSegmenter.segmenta(campioni), opzioni, avanzamento)
         }
     }
 

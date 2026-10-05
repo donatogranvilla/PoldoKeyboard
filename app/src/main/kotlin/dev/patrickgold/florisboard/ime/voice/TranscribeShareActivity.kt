@@ -31,7 +31,7 @@ import androidx.compose.ui.window.Dialog
 import dev.patrickgold.florisboard.FlorisImeService
 import kotlinx.coroutines.launch
 import org.florisboard.lib.localai.LocalAiManager
-import org.florisboard.lib.localai.engine.TranscriptionOptions
+import org.florisboard.lib.localai.engine.OpzioniTrascrizione
 
 class TranscribeShareActivity : ComponentActivity() {
 
@@ -103,15 +103,15 @@ private fun ShareTranscribeDialog(
             progress = 0.15f
             statusText = "Elaborazione con Whisper AI..."
 
-            val options = TranscriptionOptions(language = lang, formatPunctuation = true)
-            val result = localAiManager.transcribeAudioUri(audioUri, options) { p ->
+            val opzioni = OpzioniTrascrizione(lingua = lang, formattaPunteggiatura = true)
+            val result = localAiManager.transcribeAudioUri(audioUri, opzioni) { p ->
                 progress = p
                 statusText = "Trascrizione Whisper AI (${(p * 100).toInt()}%)..."
             }
 
             isProcessing = false
             if (result.isSuccess) {
-                resultText = result.getOrThrow().text
+                resultText = result.getOrThrow().testo
                 statusText = "Trascrizione completata!"
             } else {
                 statusText = "Errore: ${result.exceptionOrNull()?.message}"
