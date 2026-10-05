@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Traduzione italiana delle stringhe aggiunte da PoldoKeyboard -->
+<resources>
+    <string name="quick_action__transcription_panel">Trascrivi</string>
+    <string name="quick_action__transcription_panel__tooltip">Trascrivi un messaggio vocale</string>
+    <string name="localai_transcriber_title">Trascrizione</string>
+    <string name="localai_share_action_label">Trascrivi con PoldoKeyboard</string>
+</resources>

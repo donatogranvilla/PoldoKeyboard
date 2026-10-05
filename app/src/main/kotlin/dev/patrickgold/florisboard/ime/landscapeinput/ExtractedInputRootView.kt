@@ -96,7 +96,7 @@ class ExtractedInputRootView(val ims: FlorisImeService, eet: ExtractEditText?) :
         ) {
             ProvideLocalizedResources(
                 ims.resourcesContext,
-                appName = R.string.app_name,
+                appName = R.string.floris_app_name,
                 forceLayoutDirection = LayoutDirection.Ltr,
             ) {
                 FlorisImeTheme {

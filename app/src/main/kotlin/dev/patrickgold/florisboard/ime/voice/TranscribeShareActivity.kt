@@ -57,7 +57,7 @@ class TranscribeShareActivity : ComponentActivity() {
                 onDismiss = { finish() },
                 onCopy = { text ->
                     val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                    val clip = ClipData.newPlainText("LocalAI Transcription", text)
+                    val clip = ClipData.newPlainText("PoldoKeyboard", text)
                     clipboard.setPrimaryClip(clip)
                     Toast.makeText(this, "Testo copiato! Puoi incollarlo in WhatsApp.", Toast.LENGTH_SHORT).show()
 

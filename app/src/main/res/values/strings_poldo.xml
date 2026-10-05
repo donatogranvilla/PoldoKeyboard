@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Stringhe aggiunte da PoldoKeyboard, tenute fuori da strings.xml per non creare conflitti con FlorisBoard -->
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <string name="quick_action__transcription_panel" comment="Please mind the limited available space for the quick action strings">Transcribe</string>
+    <string name="quick_action__transcription_panel__tooltip">Transcribe a voice message</string>
+    <string name="localai_transcriber_title">Transcription</string>
+    <string name="localai_share_action_label">Transcribe with PoldoKeyboard</string>
+</resources>

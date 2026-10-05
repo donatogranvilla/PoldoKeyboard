@@ -35,11 +35,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.patrickgold.florisboard.FlorisImeService
+import dev.patrickgold.florisboard.R
 import dev.patrickgold.florisboard.ime.ImeUiMode
 import dev.patrickgold.florisboard.ime.keyboard3.LocalImeController
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.florisboard.lib.compose.stringRes
 import org.florisboard.lib.localai.LocalAiManager
 import org.florisboard.lib.localai.engine.TranscriptionOptions
 import org.florisboard.lib.localai.engine.TranscriptionResult
@@ -169,7 +171,7 @@ fun VoiceTranscriptionLayout(
                 }
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                    text = "LocalAI Transcriber",
+                    text = stringRes(R.string.localai_transcriber_title),
                     fontWeight = FontWeight.Bold,
                     fontSize = 15.sp,
                     color = Color.White

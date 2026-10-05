@@ -138,7 +138,7 @@ class FlorisCopyToClipboardActivity : ComponentActivity() {
         val prefs by FlorisPreferenceStore
         ProvideLocalizedResources(
             resourcesContext = this,
-            appName = R.string.app_name,
+            appName = R.string.floris_app_name,
             forceLayoutDirection = LayoutDirection.Ltr,
         ) {
             val theme by prefs.other.settingsTheme.collectAsState()

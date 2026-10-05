@@ -1,6 +1,8 @@
-# LocalAI Keyboard — Tastiera Android con Trascrizione Vocale 100% Locale e Offline
+# PoldoKeyboard — Tastiera Android con trascrizione dei vocali in locale
 
-**LocalAI Keyboard** è una tastiera Android completa, moderna e open-source basata su **FlorisBoard** (Apache-2.0) ed integrata con un motore di speech-to-text nativo on-device basato sull'architettura **Whisper** (MIT).
+**PoldoKeyboard** è una tastiera Android basata su **FlorisBoard** (Apache-2.0) che trascrive in locale i messaggi vocali con i modelli **Whisper** (MIT).
+
+> **Stato:** il motore nativo whisper.cpp non è ancora integrato (fase F2 del piano). Finché manca, la trascrizione non è reale.
 
 Il progetto è concepito specificamente per:
 1. **Trascrivere istantaneamente i messaggi vocali di WhatsApp** tramite il menu di condivisione di sistema (*Share Intent* `ACTION_SEND`), visualizzando un dialog trasparente senza abbandonare la chat.
@@ -45,7 +47,7 @@ graph TD
 ## 🚀 Funzionalità Principali
 
 ### 1. Workflow WhatsApp Nativo
-- Tieni premuto qualsiasi messaggio vocale su WhatsApp -> tocca **Condividi** -> seleziona **"Trascrivi con LocalAI"**.
+- Tieni premuto qualsiasi messaggio vocale su WhatsApp -> tocca **Condividi** -> seleziona **"Trascrivi con PoldoKeyboard"**.
 - La decodifica nativa `MediaExtractor` / `MediaCodec` converte direttamente il formato WhatsApp `.opus` (Ogg container) in campioni PCM a 16 kHz Mono senza librerie pesanti come FFmpeg.
 - Il testo trascritto appare in un popup non invasivo con punteggiatura corretta e opzioni rapide:
   - **"Copia e Inserisci"**: inietta direttamente il testo nella chat attiva tramite `InputConnection`.
@@ -90,28 +92,14 @@ Parakeet TDT 0.6B v3 (sherpa-onnx) entrerà nel catalogo insieme al suo motore. 
 
 ---
 
-## 🏷️ Guida al Rebranding (Personalizzazione Nome in 30 Secondi)
+## 🏷️ Nome dell'app
 
-Il nome "LocalAI Keyboard" è volutamente provvisorio e centralizzato. Per sostituirlo con il tuo brand commerciale:
-
-1. **File Kotlin**: apri [`lib/localai/src/main/kotlin/org/florisboard/lib/localai/LocalAiBrandConfig.kt`](file:///c:/Dev/PoldoKeyboard/lib/localai/src/main/kotlin/org/florisboard/lib/localai/LocalAiBrandConfig.kt) e modifica le costanti:
-   ```kotlin
-   object LocalAiBrandConfig {
-       const val BRAND_NAME = "MioBrand"
-       const val APP_FULL_NAME = "MioBrand Keyboard"
-       const val TRANSCRIBER_NAME = "MioBrand Transcriber"
-       const val SHARE_ACTION_LABEL = "Trascrivi con MioBrand"
-   }
-   ```
-2. **File Stringhe Android**: apri [`app/src/main/res/values/strings.xml`](file:///c:/Dev/PoldoKeyboard/app/src/main/res/values/strings.xml) e modifica la seconda riga:
-   ```xml
-   <string name="app_name">MioBrand Keyboard</string>
-   <string name="localai_brand_name">MioBrand</string>
-   <string name="localai_app_name">MioBrand Keyboard</string>
-   <string name="localai_share_action_label">Trascrivi con MioBrand</string>
-   ```
-
-Tutte le viste (Smartbar, activity WhatsApp, impostazioni, manifest, icone del launcher) si aggiorneranno automaticamente.
+- Il nome visibile (launcher, elenco delle tastiere, frasi che citano l'app) è la risorsa `floris_app_name`, non tradotta:
+  - release: `app/src/main/res/values/strings_dont_translate.xml`
+  - debug: `app/src/debug/res/values/strings.xml`
+  - beta: `app/src/beta/res/values/strings.xml`
+- Le stringhe aggiunte da PoldoKeyboard, compresa l'etichetta del menu Condividi `localai_share_action_label`, stanno in `strings_poldo.xml` (inglese e italiano). Così i file `strings.xml` di FlorisBoard restano identici all'originale.
+- L'applicationId è ancora quello di FlorisBoard: va scelto prima della prima release. Le build di debug si installano già accanto a FlorisBoard grazie al suffisso `.debug`.
 
 ---
 

@@ -1,6 +1,6 @@
 # Third Party Licenses & Compliance Matrix
 
-This document tracks all third-party components, frameworks, libraries, and AI models utilized in **LocalAI Keyboard**.
+This document tracks all third-party components, frameworks, libraries, and AI models utilized in **PoldoKeyboard**.
 
 In accordance with project requirements, every dependency is audited to ensure compatibility with **commercial distribution**, private distribution, and offline operation without backend telemetry.
 

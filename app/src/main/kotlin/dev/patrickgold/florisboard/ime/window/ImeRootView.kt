@@ -74,7 +74,7 @@ class ImeRootView(val ims: FlorisImeService) : AbstractComposeView(ims) {
         ) {
             ProvideLocalizedResources(
                 resourcesContext = ims.resourcesContext,
-                appName = R.string.app_name,
+                appName = R.string.floris_app_name,
                 forceLayoutDirection = LayoutDirection.Ltr,
             ) {
                 FlorisImeTheme {
