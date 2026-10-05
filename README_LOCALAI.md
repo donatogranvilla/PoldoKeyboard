@@ -5,7 +5,7 @@
 > **Stato:** il motore nativo whisper.cpp non è ancora integrato (fase F2 del piano). Finché manca, la trascrizione non è reale.
 
 Il progetto è concepito specificamente per:
-1. **Trascrivere istantaneamente i messaggi vocali di WhatsApp** tramite il menu di condivisione di sistema (*Share Intent* `ACTION_SEND`), visualizzando un dialog trasparente senza abbandonare la chat.
+1. **Trascrivere i messaggi vocali di WhatsApp** tramite il menu di condivisione di sistema (`ACTION_SEND`, o `ACTION_SEND_MULTIPLE` per più vocali insieme), senza abbandonare la chat: il vocale entra in coda, un servizio lo trascrive in un processo separato e il testo compare nella scheda Trascrizioni della tastiera.
 2. **Trascrivere un vocale dalla tastiera**: il pannello di trascrizione apre un file audio salvato e **inserisce il testo nel campo attivo** (`InputConnection.commitText()`). La dettatura dal microfono è rimandata a dopo la v1.
 3. **Garantire il 100% di Privacy**: nessun backend remoto, nessuna API cloud, nessun account utente, zero analytics e zero telemetria. Tutto l'audio viene decodificato ed elaborato localmente nella RAM del dispositivo.
 4. **Massima Libertà Commerciale**: nessuna dipendenza virale (zero GPL/AGPL). Base Apache-2.0 e componenti ASR con licenza MIT.
@@ -18,6 +18,9 @@ Il progetto è concepito specificamente per:
 ```mermaid
 graph TD
     A[WhatsApp / Note Vocale Opus] -->|Condividi / ACTION_SEND| B[TranscribeShareActivity]
+    B -->|Copia e accoda| Q[ArchivioTrascrizioni - coda e storico Room]
+    B -->|Avvia| S[ServizioTrascrizione - processo :trascrizione]
+    S -->|Prende dalla coda e salva l'esito| Q
     C[Azione Trascrivi della Smartbar] -->|Apre| D[VoiceTranscriptionLayout]
 
     subgraph "Modulo :lib:localai"
@@ -31,7 +34,7 @@ graph TD
         L[BenchmarkSuite - Test Scenari Reali WhatsApp]
     end
 
-    B --> E
+    S --> E
     D --> E
     E --> F
     F --> G
@@ -47,11 +50,11 @@ graph TD
 ## 🚀 Funzionalità Principali
 
 ### 1. Workflow WhatsApp Nativo
-- Tieni premuto qualsiasi messaggio vocale su WhatsApp -> tocca **Condividi** -> seleziona **"Trascrivi con PoldoKeyboard"**.
+- Tieni premuto qualsiasi messaggio vocale su WhatsApp -> tocca **Condividi** -> seleziona **"Trascrivi con PoldoKeyboard"**. Si possono condividere anche più vocali insieme.
+- Non si apre nessuna finestra: il vocale viene copiato nella memoria privata dell'app e messo in coda, un breve avviso lo conferma e resti nella chat.
+- [`ServizioTrascrizione`](app/src/main/kotlin/dev/patrickgold/florisboard/ime/voice/ServizioTrascrizione.kt) trascrive la coda in un processo separato (`:trascrizione`), con una notifica di avanzamento, anche a schermo spento. Se il motore esaurisce la memoria si chiude quel processo, non la tastiera.
 - La decodifica nativa `MediaExtractor` / `MediaCodec` converte direttamente il formato WhatsApp `.opus` (Ogg container) in campioni PCM a 16 kHz Mono senza librerie pesanti come FFmpeg.
-- Il testo trascritto appare in un popup non invasivo con punteggiatura corretta e opzioni rapide:
-  - **"Copia e Inserisci"**: inietta direttamente il testo nella chat attiva tramite `InputConnection`.
-  - **"Condividi / Invia"**: inoltra il testo a qualsiasi contatto o applicazione.
+- Il testo comparirà nella scheda Trascrizioni della tastiera, che si aprirà da sola al ritorno nella chat (in sviluppo).
 
 ### 2. Pannello di trascrizione nella tastiera
 - Si apre con l'azione **Trascrivi** della Smartbar (pannello `VoiceTranscriptionLayout`). Il tasto voce resta quello di FlorisBoard e passa alla tastiera vocale di sistema.

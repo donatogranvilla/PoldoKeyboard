@@ -7,4 +7,10 @@
     <string name="localai_share_action_label">Trascrivi con PoldoKeyboard</string>
     <string name="localai_transcription_channel">Trascrizione dei vocali</string>
     <string name="localai_transcription_in_progress">Trascrizione di un vocale in corso</string>
+    <string name="localai_share_failed">Impossibile leggere il vocale condiviso.</string>
+    <string name="localai_share_partial">Vocali in coda: %1$d su %2$d. Gli altri non si sono potuti leggere.</string>
+    <plurals name="localai_share_queued">
+        <item quantity="one">Vocale in coda: la trascrizione comparirà nella tastiera.</item>
+        <item quantity="other">%d vocali in coda: le trascrizioni compariranno nella tastiera.</item>
+    </plurals>
 </resources>

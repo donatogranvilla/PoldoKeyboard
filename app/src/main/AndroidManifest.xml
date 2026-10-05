@@ -143,15 +143,20 @@
             android:theme="@style/FlorisAppTheme.Transparent"
             android:exported="false"/>
 
-        <!-- Transcribe Audio Share Activity for WhatsApp / Android Share Target -->
+        <!-- Riceve i vocali condivisi, anche più insieme, li mette in coda e si chiude subito.
+              Senza finestra: non compare nelle app recenti e non porta in primo piano PoldoKeyboard -->
         <activity
             android:name="dev.patrickgold.florisboard.ime.voice.TranscribeShareActivity"
             android:icon="@mipmap/floris_app_icon"
             android:label="@string/localai_share_action_label"
             android:theme="@style/FlorisAppTheme.Transparent"
+            android:excludeFromRecents="true"
+            android:taskAffinity=""
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|uiMode"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.SEND"/>
+                <action android:name="android.intent.action.SEND_MULTIPLE"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <data android:mimeType="audio/*"/>
             </intent-filter>
