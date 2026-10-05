@@ -39,6 +39,7 @@ import dev.patrickgold.florisboard.ime.nlp.NlpManager
 import dev.patrickgold.florisboard.ime.text.gestures.GlideTypingManager
 import dev.patrickgold.florisboard.ime.theme.SystemThemeMode
 import dev.patrickgold.florisboard.ime.theme.ThemeController
+import dev.patrickgold.florisboard.ime.voice.ServizioTrascrizione
 import dev.patrickgold.florisboard.lib.crashutility.CrashUtility
 import dev.patrickgold.florisboard.lib.devtools.Flog
 import dev.patrickgold.florisboard.lib.devtools.LogTopic
@@ -92,6 +93,10 @@ class FlorisApplication : Application() {
         super.onCreate()
         FlorisApplicationReference = WeakReference(this)
 
+        // Il processo del servizio di trascrizione non ospita la tastiera: inizializzarla qui raddoppierebbe
+        // l'ascolto degli appunti, aprirebbe le preferenze da due processi e svuoterebbe la cache condivisa
+        if (ServizioTrascrizione.isProcessoDelServizio()) return
+
         try {
             Flog.install(
                 context = this,
@@ -129,6 +134,8 @@ class FlorisApplication : Application() {
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
+        // Nel processo del servizio di trascrizione i controller non vengono creati
+        if (!::themeController.isInitialized) return
         themeController.activeSystemThemeMode.value = newConfig.determineSystemThemeMode()
     }
 

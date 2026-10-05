@@ -8,6 +8,13 @@
     <!-- Permission needed to create notifications on devices running Android 13+ -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
+    <!-- Servizio di trascrizione in primo piano: elaborazione multimediale da Android 15, sincronizzazione
+          dati su Android 14, e CPU sveglia mentre trascrive a schermo spento -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROCESSING"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+
     <!-- Android 11+ only: Define that FlorisBoard requests to see all apps that
           ship with an IME or Spell Check service. This is used to guide the user
           in the Settings Ui why FlorisBoard may not be working.
@@ -149,6 +156,14 @@
                 <data android:mimeType="audio/*"/>
             </intent-filter>
         </activity>
+
+        <!-- Trascrizione dei vocali in coda, in un processo separato: se il motore esaurisce
+              la memoria si chiude questo processo e non la tastiera -->
+        <service
+            android:name="dev.patrickgold.florisboard.ime.voice.ServizioTrascrizione"
+            android:process=":trascrizione"
+            android:foregroundServiceType="mediaProcessing|dataSync"
+            android:exported="false"/>
 
         <!-- Clipboard Media File Provider -->
         <provider

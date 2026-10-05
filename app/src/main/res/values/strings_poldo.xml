@@ -5,4 +5,6 @@
     <string name="quick_action__transcription_panel__tooltip">Transcribe a voice message</string>
     <string name="localai_transcriber_title">Transcription</string>
     <string name="localai_share_action_label">Transcribe with PoldoKeyboard</string>
+    <string name="localai_transcription_channel">Voice message transcription</string>
+    <string name="localai_transcription_in_progress">Transcribing a voice message</string>
 </resources>

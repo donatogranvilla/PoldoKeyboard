@@ -20,7 +20,10 @@ import java.security.MessageDigest
  * perché grandi e reimportabili.
  */
 class ModelManager(private val context: Context) {
-    private val prefs = context.getSharedPreferences("localai_settings", Context.MODE_PRIVATE)
+    // Il modello si sceglie nel processo della tastiera ma lo usa il servizio, in un altro processo:
+    // con MODE_MULTI_PROCESS ogni nuovo ModelManager rilegge il file se un altro processo l'ha cambiato
+    @Suppress("DEPRECATION")
+    private val prefs = context.getSharedPreferences("localai_settings", Context.MODE_MULTI_PROCESS)
 
     private val modelsDir: File
         get() = File(context.noBackupFilesDir, "modelli").apply {
