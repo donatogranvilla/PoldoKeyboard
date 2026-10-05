@@ -3,7 +3,6 @@ package org.florisboard.lib.localai
 import android.content.Context
 import android.net.Uri
 import org.florisboard.lib.localai.audio.AudioDecoder
-import org.florisboard.lib.localai.audio.AudioRecorder
 import org.florisboard.lib.localai.engine.*
 import org.florisboard.lib.localai.model.ModelCatalog
 import org.florisboard.lib.localai.model.ModelInfo
@@ -19,7 +18,6 @@ import java.io.File
  */
 class LocalAiManager(val context: Context) {
     val modelManager = ModelManager(context)
-    val audioRecorder = AudioRecorder()
 
     var activeEngine: MotoreTrascrizione = MotoreWhisperCpp()
         private set

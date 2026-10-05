@@ -4,7 +4,7 @@
 
 Il progetto è concepito specificamente per:
 1. **Trascrivere istantaneamente i messaggi vocali di WhatsApp** tramite il menu di condivisione di sistema (*Share Intent* `ACTION_SEND`), visualizzando un dialog trasparente senza abbandonare la chat.
-2. **Trascrivere audio dal vivo** tramite il pulsante microfono 🎙️ integrato nella Smartbar della tastiera, con **inserimento diretto del testo nel campo attivo** (`InputConnection.commitText()`), eliminando il bisogno di copia-incolla manuale.
+2. **Trascrivere un vocale dalla tastiera**: il pannello di trascrizione apre un file audio salvato e **inserisce il testo nel campo attivo** (`InputConnection.commitText()`). La dettatura dal microfono è rimandata a dopo la v1.
 3. **Garantire il 100% di Privacy**: nessun backend remoto, nessuna API cloud, nessun account utente, zero analytics e zero telemetria. Tutto l'audio viene decodificato ed elaborato localmente nella RAM del dispositivo.
 4. **Massima Libertà Commerciale**: nessuna dipendenza virale (zero GPL/AGPL). Base Apache-2.0 e componenti ASR con licenza MIT.
 5. **Personalizzazione Immediata del Brand**: il nome del progetto è provvisorio e centralizzato in un unico file per essere sostituito in pochi secondi.
@@ -16,7 +16,7 @@ Il progetto è concepito specificamente per:
 ```mermaid
 graph TD
     A[WhatsApp / Note Vocale Opus] -->|Condividi / ACTION_SEND| B[TranscribeShareActivity]
-    C[Tastiera FlorisBoard Smartbar 🎙️] -->|Attiva| D[VoiceTranscriptionLayout]
+    C[Tastiera FlorisBoard Smartbar] -->|Attiva| D[VoiceTranscriptionLayout]
 
     subgraph "Modulo :lib:localai"
         E[AudioDecoder - MediaCodec & MediaExtractor]
@@ -31,7 +31,6 @@ graph TD
 
     B --> E
     D --> E
-    D -->|AudioRecord a 16kHz| G
     E --> F
     F --> G
     G --> H
@@ -52,10 +51,10 @@ graph TD
   - **"Copia e Inserisci"**: inietta direttamente il testo nella chat attiva tramite `InputConnection`.
   - **"Condividi / Invia"**: inoltra il testo a qualsiasi contatto o applicazione.
 
-### 2. Microfono Integrato nella Smartbar Tastiera
-- Toccando l'icona microfono 🎙️ sulla tastiera si apre il pannello dedicato `VoiceTranscriptionLayout`.
-- Registrazione vocale in tempo reale a 16 kHz con visualizzatore dell'ampiezza audio.
-- Possibilità di importare qualsiasi file audio locale (`.opus`, `.m4a`, `.wav`, `.mp3`).
+### 2. Pannello di trascrizione nella tastiera
+- Si apre dalla Smartbar della tastiera (pannello `VoiceTranscriptionLayout`).
+- Trascrive qualsiasi file audio locale (`.opus`, `.m4a`, `.wav`, `.mp3`).
+- La dettatura dal microfono è rimandata a dopo la v1: l'app non chiede il permesso `RECORD_AUDIO`.
 - Selettore lingua rapido: **Auto (Rileva)**, Italiano, English, Español, Français, Deutsch, Português.
 - Inserimento istantaneo nel campo testo attivo senza uscire dall'app.
 

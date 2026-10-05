@@ -12,7 +12,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -75,9 +74,6 @@ fun VoiceTranscriptionLayout(
     var isProcessing by remember { mutableStateOf(false) }
     var processingStatus by remember { mutableStateOf("Pronto per la trascrizione") }
     var progress by remember { mutableFloatStateOf(0f) }
-
-    var isRecording by remember { mutableStateOf(false) }
-    var micAmplitude by remember { mutableFloatStateOf(0f) }
 
     var resultText by remember { mutableStateOf<String?>(null) }
     var lastDurationMs by remember { mutableLongStateOf(0L) }
@@ -144,47 +140,6 @@ fun VoiceTranscriptionLayout(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let { transcribeUri(it) }
-    }
-
-    fun toggleRecording() {
-        if (!isRecording) {
-            val started = localAiManager.audioRecorder.startRecording(scope) { amp ->
-                micAmplitude = amp
-            }
-            if (started) {
-                isRecording = true
-                processingStatus = "Registrazione in corso... Parla ora."
-            } else {
-                Toast.makeText(context, "Impossibile avviare il microfono (controlla i permessi)", Toast.LENGTH_SHORT).show()
-            }
-        } else {
-            scope.launch {
-                isRecording = false
-                isProcessing = true
-                processingStatus = "Elaborazione registrazione vocale..."
-
-                val samples = localAiManager.audioRecorder.stopRecording()
-                if (samples.isNotEmpty()) {
-                    val options = TranscriptionOptions(
-                        language = selectedLang,
-                        formatPunctuation = true
-                    )
-                    val result = localAiManager.transcribeRecordedAudio(samples, options) { p ->
-                        progress = p
-                        processingStatus = "Trascrizione Whisper AI (${(p * 100).toInt()}%)..."
-                    }
-                    if (result.isSuccess) {
-                        handleTranscriptionResult(result.getOrThrow())
-                    } else {
-                        isProcessing = false
-                        processingStatus = "Errore durante la trascrizione."
-                    }
-                } else {
-                    isProcessing = false
-                    processingStatus = "Nessun audio registrato."
-                }
-            }
-        }
     }
 
     Column(
@@ -322,33 +277,6 @@ fun VoiceTranscriptionLayout(
                         )
                     }
                 }
-                isRecording -> {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size((48 + (micAmplitude * 30)).dp)
-                                .clip(CircleShape)
-                                .background(Color(0xFFE53935)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Mic,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(28.dp)
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(6.dp))
-                        Text(
-                            text = "In ascolto... Tocca di nuovo per fermare e trascrivere",
-                            color = Color(0xFFFFCDD2),
-                            fontSize = 12.sp
-                        )
-                    }
-                }
                 resultText != null -> {
                     Column(
                         modifier = Modifier
@@ -401,7 +329,7 @@ fun VoiceTranscriptionLayout(
                 }
                 else -> {
                     Text(
-                        text = "Seleziona un vocale WhatsApp oppure registra direttamente dal vivo.",
+                        text = "Scegli un vocale salvato sul telefono, oppure condividilo da WhatsApp con «Trascrivi».",
                         color = Color(0xFFAAAAAA),
                         fontSize = 13.sp,
                         textAlign = TextAlign.Center
@@ -424,7 +352,7 @@ fun VoiceTranscriptionLayout(
                     .height(48.dp)
                     .clip(RoundedCornerShape(10.dp))
                     .background(Color(0xFF2E7D32))
-                    .clickable(enabled = !isProcessing && !isRecording) {
+                    .clickable(enabled = !isProcessing) {
                         resultText = null
                         audioFilePicker.launch("audio/*")
                     }
@@ -440,37 +368,7 @@ fun VoiceTranscriptionLayout(
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                    text = "Vocale WhatsApp",
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 13.sp
-                )
-            }
-
-            // Button B: Live Record / Stop
-            Row(
-                modifier = Modifier
-                    .weight(1f)
-                    .height(48.dp)
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(if (isRecording) Color(0xFFC62828) else Color(0xFF1565C0))
-                    .clickable(enabled = !isProcessing) {
-                        resultText = null
-                        toggleRecording()
-                    }
-                    .padding(horizontal = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Icon(
-                    imageVector = if (isRecording) Icons.Default.Stop else Icons.Default.Mic,
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(
-                    text = if (isRecording) "Ferma & Trascrivi" else "Registra Vocale",
+                    text = "Scegli un vocale",
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
                     fontSize = 13.sp
