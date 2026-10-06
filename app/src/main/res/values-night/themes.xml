@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Con il tema scuro del telefono la finestra parte scura, senza un lampo bianco all'apertura -->
+    <style name="Tema.Poldo" parent="android:Theme.Material.NoActionBar" />
+</resources>
