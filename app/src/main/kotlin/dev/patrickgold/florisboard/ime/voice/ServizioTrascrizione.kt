@@ -65,8 +65,7 @@ class ServizioTrascrizione : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         // Android chiede il primo piano a ogni avvio, anche quando il servizio sta già lavorando
-        val notifica = ultimaNotifica ?: creaNotifica(nomeVocale = null, frazione = null)
-        ServiceCompat.startForeground(this, ID_NOTIFICA, notifica, tipoServizio())
+        avviaInPrimoPiano(ultimaNotifica ?: creaNotifica(nomeVocale = null, frazione = null))
         ultimoStartId = startId
         if (lavoro?.isActive != true) {
             lavoro = scope.launch { svuotaCoda() }
@@ -177,6 +176,19 @@ class ServizioTrascrizione : Service() {
             .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
             .build()
             .also { ultimaNotifica = it }
+    }
+
+    /**
+     * Porta il servizio in primo piano con il suo tipo. Non usa ServiceCompat.startForeground: su Android 14
+     * e successivi filtra il tipo con quelli noti ad Android 14 e scarta l'elaborazione multimediale, arrivata
+     * con Android 15. Resta "nessun tipo", che Android 16 vieta alle app recenti, e il servizio si chiude.
+     */
+    private fun avviaInPrimoPiano(notifica: Notification) {
+        if (AndroidVersion.ATLEAST_API29_Q) {
+            startForeground(ID_NOTIFICA, notifica, tipoServizio())
+        } else {
+            startForeground(ID_NOTIFICA, notifica)
+        }
     }
 
     /**
