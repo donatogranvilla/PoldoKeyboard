@@ -21,6 +21,29 @@ class CatalogoModelliTest {
         assertEquals(impronte.size, impronte.toSet().size, "Due modelli hanno la stessa impronta")
     }
 
+    /**
+     * Ogni modello dichiara il motore della sua architettura, altrimenti verrebbe caricato nel motore sbagliato,
+     * e lingue con codici ISO di due lettere.
+     */
+    @Test
+    fun testMotoriELingueCoerenti() {
+        for (modello in ModelCatalog.ALL_MODELS) {
+            assertEquals(modello.architettura.motore, modello.tipoMotore, "Motore sbagliato per ${modello.id}")
+            for (lingua in modello.lingue) {
+                assertTrue(lingua.matches(Regex("[a-z]{2}")), "Lingua non valida in ${modello.id}: $lingua")
+            }
+        }
+    }
+
+    /** Per una lingua vengono prima i modelli specializzati, poi i multilingue che la coprono. */
+    @Test
+    fun testModelliPerLingua() {
+        val italiani = ModelCatalog.perLingua("it")
+        assertTrue(italiani.first().specializzato)
+        assertTrue(italiani.all { it.copre("it") })
+        assertTrue(italiani.any { !it.specializzato })
+    }
+
     /** Un file si riconosce dalla sua impronta, anche se scritta in maiuscolo. */
     @Test
     fun testRiconoscimentoPerImpronta() {

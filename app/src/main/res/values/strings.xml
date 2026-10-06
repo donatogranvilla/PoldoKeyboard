@@ -102,6 +102,7 @@
     <string name="modello_qualita">Accuracy %1$s · Speed %2$s</string>
     <string name="modello_peso">Download %1$s · Recommended RAM %2$s</string>
     <string name="modello_file">File: %1$s · quantization %2$s</string>
+    <string name="modello_file_semplice">File: %1$s</string>
     <string name="modello_licenza">License: %1$s</string>
     <string name="modello_licenza_nc">License: %1$s, non-commercial use only</string>
     <string name="elimina_modello_titolo">Delete %1$s?</string>

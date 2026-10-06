@@ -403,8 +403,14 @@ private fun SchedaModelloCatalogo(
                 ),
             )
             Dettaglio(stringResource(R.string.modello_tipo, stringResource(modello.architettura.etichetta())))
+            val file = stringResource(modello.architettura.fileDaScaricare())
+            // Alcuni archivi non dichiarano la quantizzazione
             Dettaglio(
-                stringResource(R.string.modello_file, stringResource(modello.architettura.fileDaScaricare()), modello.quantizzazione),
+                if (modello.quantizzazione.isBlank()) {
+                    stringResource(R.string.modello_file_semplice, file)
+                } else {
+                    stringResource(R.string.modello_file, file, modello.quantizzazione)
+                },
             )
             Dettaglio(
                 stringResource(if (modello.nonCommerciale) R.string.modello_licenza_nc else R.string.modello_licenza, modello.license),
