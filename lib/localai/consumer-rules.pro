@@ -6,6 +6,9 @@
     *;
 }
 
+# 1b. sherpa-onnx: la libreria nativa legge per nome i campi delle classi di configurazione via JNI
+-keep class com.k2fsa.sherpa.onnx.** { *; }
+
 # 2. Preserve Model serialization data classes
 -keep class org.florisboard.lib.localai.model.ModelInfo { *; }
 -keep class org.florisboard.lib.localai.engine.ModelloInstallato { *; }

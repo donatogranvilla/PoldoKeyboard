@@ -14,7 +14,8 @@ In accordance with project requirements, every dependency is audited to ensure c
 | **AndroidX Libraries** | Google / Android Open Source Project | Various | Apache-2.0 | **Yes** | Yes | Core, Lifecycle, Compose runtime & UI. |
 | **Kotlin & Coroutines** | JetBrains | 2.4.x / 1.10.x | Apache-2.0 | **Yes** | Yes | Standard Kotlin runtime and coroutines. |
 | **whisper.cpp** (with **ggml**) | [ggml-org/whisper.cpp](https://github.com/ggml-org/whisper.cpp) | 1.9.4 (git submodule) | MIT | **Yes** | Yes | C/C++ ASR engine, built from source for arm64-v8a only (ARMv8.2 with dotprod and fp16). |
-| **sherpa-onnx** | [k2-fsa/sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) | Optional/Alternative | Apache-2.0 | **Yes** | Yes | Next-gen Kaldi ONNX runtime bridge. Model licenses checked separately. |
+| **sherpa-onnx** | [k2-fsa/sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) | 1.13.8 | Apache-2.0 | **Yes** | Yes | Second ASR engine. `lib/localai/src/main/jniLibs/arm64-v8a/libsherpa-onnx-jni.so` comes unmodified from the official release asset `sherpa-onnx-v1.13.8-android-static-link-onnxruntime.tar.bz2` (SHA-256 `7583ca385ae7d981e65468455c2ea2c9f2da383921dccfc5658d0dc19d309e6f`; library SHA-256 `b4a53d915c19cb6d09b1cdc9a8084be54419b647aab9097ffdfb46f30c3c4dd8`). The Kotlin API files in `lib/localai/src/main/kotlin/com/k2fsa/sherpa/onnx/` are copied unmodified from tag v1.13.8. Model licenses checked separately. |
+| **ONNX Runtime** | [microsoft/onnxruntime](https://github.com/microsoft/onnxruntime) | bundled in sherpa-onnx 1.13.8 | MIT | **Yes** | Yes | Statically linked inside `libsherpa-onnx-jni.so`. |
 
 ---
 
