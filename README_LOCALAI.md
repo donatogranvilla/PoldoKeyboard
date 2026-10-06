@@ -6,7 +6,7 @@
 
 Il progetto è concepito specificamente per:
 1. **Trascrivere i messaggi vocali di WhatsApp** tramite il menu di condivisione di sistema (`ACTION_SEND`, o `ACTION_SEND_MULTIPLE` per più vocali insieme), senza abbandonare la chat: il vocale entra in coda, un servizio lo trascrive in un processo separato e il testo compare nella scheda Trascrizioni della tastiera.
-2. **Trascrivere un vocale dalla tastiera**: il pannello di trascrizione apre un file audio salvato e **inserisce il testo nel campo attivo** (`InputConnection.commitText()`). La dettatura dal microfono è rimandata a dopo la v1.
+2. **Rispondere dalla tastiera**: la scheda Trascrizioni mostra le ultime trascrizioni e **inserisce il testo nel campo attivo** con un tocco. La dettatura dal microfono è rimandata a dopo la v1.
 3. **Garantire il 100% di Privacy**: nessun backend remoto, nessuna API cloud, nessun account utente, zero analytics e zero telemetria. Tutto l'audio viene decodificato ed elaborato localmente nella RAM del dispositivo.
 4. **Massima Libertà Commerciale**: nessuna dipendenza virale (zero GPL/AGPL). Base Apache-2.0 e componenti ASR con licenza MIT.
 5. **Personalizzazione Immediata del Brand**: il nome del progetto è provvisorio e centralizzato in un unico file per essere sostituito in pochi secondi.
@@ -21,7 +21,10 @@ graph TD
     B -->|Copia e accoda| Q[ArchivioTrascrizioni - coda e storico Room]
     B -->|Avvia| S[ServizioTrascrizione - processo :trascrizione]
     S -->|Prende dalla coda e salva l'esito| Q
-    C[Azione Trascrivi della Smartbar] -->|Apre| D[VoiceTranscriptionLayout]
+    C[Azione Trascrivi della Smartbar] -->|Apre| D[VoiceTranscriptionLayout - scheda Trascrizioni]
+    D -->|Osserva le ultime 5| Q
+    D -->|Tocco: inserisce| M[Campo di Testo Attivo / Chat WhatsApp]
+    D -->|Pressione lunga: copia| N[Appunti]
 
     subgraph "Modulo :lib:localai"
         E[AudioDecoder - MediaCodec & MediaExtractor]
@@ -35,14 +38,12 @@ graph TD
     end
 
     S --> E
-    D --> E
     E --> F
     F --> G
     G --> H
     G --> I
     H --> K
-    K -->|commitText| M[Campo di Testo Attivo / Chat WhatsApp]
-    K -->|Copia Appunti| N[Clipboard Android]
+    K -->|Testo trascritto| S
 ```
 
 ---
@@ -56,12 +57,13 @@ graph TD
 - La decodifica nativa `MediaExtractor` / `MediaCodec` converte direttamente il formato WhatsApp `.opus` (Ogg container) in campioni PCM a 16 kHz Mono senza librerie pesanti come FFmpeg.
 - Il testo comparirà nella scheda Trascrizioni della tastiera, che si aprirà da sola al ritorno nella chat (in sviluppo).
 
-### 2. Pannello di trascrizione nella tastiera
-- Si apre con l'azione **Trascrivi** della Smartbar (pannello `VoiceTranscriptionLayout`). Il tasto voce resta quello di FlorisBoard e passa alla tastiera vocale di sistema.
-- Trascrive qualsiasi file audio locale (`.opus`, `.m4a`, `.wav`, `.mp3`).
+### 2. Scheda Trascrizioni nella tastiera
+- Si apre con l'azione **Trascrivi** della Smartbar (`VoiceTranscriptionLayout`). Il tasto voce resta quello di FlorisBoard e passa alla tastiera vocale di sistema.
+- Mostra le ultime 5 trascrizioni con il loro stato: in coda, in corso con la percentuale, pronta o non riuscita. Lo storico completo resta nell'archivio finché non lo svuoti.
+- **Tocco**: inserisce il testo nel campo della chat e torna alla tastiera. **Pressione lunga**: copia il testo negli appunti.
+- Per ogni trascrizione: elimina, e riprova se non è riuscita. Dall'intestazione: gestione dei modelli e pulizia completa, con conferma.
+- Usa gli stili del pannello Appunti, quindi segue il tema della tastiera; a telefono bloccato i testi restano nascosti.
 - La dettatura dal microfono è rimandata a dopo la v1: l'app non chiede il permesso `RECORD_AUDIO`.
-- Selettore lingua rapido: **Auto (Rileva)**, Italiano, English, Español, Français, Deutsch, Português.
-- Inserimento istantaneo nel campo testo attivo senza uscire dall'app.
 
 ### 3. Gestione Vocali Lunghi (> 60 secondi)
 - I modelli Whisper operano internamente su finestre di 30 secondi.

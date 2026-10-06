@@ -3,7 +3,7 @@
 <resources>
     <string name="quick_action__transcription_panel">Trascrivi</string>
     <string name="quick_action__transcription_panel__tooltip">Trascrivi un messaggio vocale</string>
-    <string name="localai_transcriber_title">Trascrizione</string>
+    <string name="localai_transcriber_title">Trascrizioni</string>
     <string name="localai_share_action_label">Trascrivi con PoldoKeyboard</string>
     <string name="localai_transcription_channel">Trascrizione dei vocali</string>
     <string name="localai_transcription_in_progress">Trascrizione di un vocale in corso</string>
@@ -13,4 +13,17 @@
         <item quantity="one">Vocale in coda: la trascrizione comparirà nella tastiera.</item>
         <item quantity="other">%d vocali in coda: le trascrizioni compariranno nella tastiera.</item>
     </plurals>
+    <string name="localai_transcriptions_empty_title">Ancora nessuna trascrizione</string>
+    <string name="localai_transcriptions_empty_message">Condividi un vocale con «Trascrivi con PoldoKeyboard»: il testo comparirà qui. Tocca una trascrizione per inserirla, tienila premuta per copiarla.</string>
+    <string name="localai_transcriptions_locked_title">Trascrizioni nascoste</string>
+    <string name="localai_transcriptions_locked_message">Sblocca il telefono per vederle.</string>
+    <string name="localai_transcriptions_clear_all_message">Eliminare tutte le trascrizioni e i vocali salvati?</string>
+    <string name="localai_transcriptions_cleared">Trascrizioni eliminate</string>
+    <string name="localai_transcription_queued">In coda: partirà appena il motore è libero.</string>
+    <string name="localai_transcription_running">Trascrizione in corso: {v}</string>
+    <string name="localai_transcription_failed">Non riuscita: {v}</string>
+    <string name="localai_transcription_retry">Riprova</string>
+    <string name="localai_transcription_delete">Elimina</string>
+    <string name="localai_transcription_models">Modelli di trascrizione</string>
+    <string name="localai_transcription_copied">Trascrizione copiata</string>
 </resources>
