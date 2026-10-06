@@ -91,7 +91,8 @@ class MotoreTrascrizioneTest {
 
     @Test
     fun testCatalogoModelliHardwareAttributes() {
-        assertEquals(7, ModelCatalog.ALL_MODELS.size)
+        // Il catalogo comprende almeno i sette Whisper ufficiali
+        assertTrue(ModelCatalog.ALL_MODELS.size >= 7)
 
         for (model in ModelCatalog.ALL_MODELS) {
             assertTrue(model.sizeBytes > 0)

@@ -41,6 +41,8 @@ interface MotoreTrascrizione : AutoCloseable {
 
 /**
  * Rappresenta un modello speech-to-text scaricato e verificato sul dispositivo.
+ * @property percorsoFile Il file del modello per whisper.cpp, la cartella con i suoi file per sherpa-onnx.
+ * @property lingue Le lingue del modello: vuota se le copre tutte, una sola se è specializzato.
  */
 data class ModelloInstallato(
     val id: String,
@@ -50,7 +52,12 @@ data class ModelloInstallato(
     val tipo: TipoMotore = TipoMotore.WHISPER_CPP,
     val ramConsigliataMb: Int = 400,
     val descrizione: String = "",
-)
+    val architettura: ArchitetturaModello = ArchitetturaModello.GGML,
+    val lingue: List<String> = emptyList(),
+) {
+    /** La lingua da imporre in trascrizione, se il modello è specializzato in una sola. */
+    val linguaSpecializzata: String? get() = lingue.singleOrNull()
+}
 
 /**
  * Tipologia di motore ASR sottostante.
@@ -59,6 +66,37 @@ enum class TipoMotore {
     WHISPER_CPP,
     SHERPA_ONNX,
     MOCK,
+}
+
+/**
+ * Com'è fatto un modello, e quindi quale motore lo esegue e quali file servono.
+ * @property motore Il motore che sa eseguirlo.
+ * @property singoloFile true se il modello è un solo file; altrimenti è una cartella di file.
+ */
+enum class ArchitetturaModello(val motore: TipoMotore, val singoloFile: Boolean) {
+    /** Whisper in formato GGML per whisper.cpp: un solo file `ggml-*.bin`. */
+    GGML(TipoMotore.WHISPER_CPP, singoloFile = true),
+
+    /** Transducer NeMo, come Parakeet TDT e GigaAM: encoder, decoder, joiner e tokens.txt. */
+    NEMO_TRANSDUCER(TipoMotore.SHERPA_ONNX, singoloFile = false),
+
+    /** Transducer Zipformer di icefall: encoder, decoder, joiner e tokens.txt. */
+    ZIPFORMER_TRANSDUCER(TipoMotore.SHERPA_ONNX, singoloFile = false),
+
+    /** CTC NeMo: un solo file model.onnx più tokens.txt. */
+    NEMO_CTC(TipoMotore.SHERPA_ONNX, singoloFile = false),
+
+    /** Omnilingual ASR di Meta (CTC): model.onnx più tokens.txt. */
+    OMNILINGUAL_CTC(TipoMotore.SHERPA_ONNX, singoloFile = false),
+
+    /** Moonshine: preprocess, encode e decoder (v1) oppure encoder e decoder unito (v2), più tokens.txt. */
+    MOONSHINE(TipoMotore.SHERPA_ONNX, singoloFile = false),
+
+    /** SenseVoice: model.onnx più tokens.txt. */
+    SENSE_VOICE(TipoMotore.SHERPA_ONNX, singoloFile = false),
+
+    /** Whisper esportato in ONNX per sherpa-onnx: encoder, decoder e tokens. */
+    WHISPER_ONNX(TipoMotore.SHERPA_ONNX, singoloFile = false),
 }
 
 /**

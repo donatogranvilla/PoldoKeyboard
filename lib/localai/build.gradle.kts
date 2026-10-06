@@ -86,6 +86,8 @@ configure<LibraryExtension> {
 
 dependencies {
     implementation(libs.androidx.core.ktx)
+    // Estrazione degli archivi .tar.bz2 dei modelli sherpa-onnx
+    implementation(libs.apache.commons.compress)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.coroutines)
 
