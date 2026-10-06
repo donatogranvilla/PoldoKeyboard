@@ -126,7 +126,11 @@ class ServizioTrascrizione : Service() {
             }
         }
         try {
-            val esito = localAiManager.transcribeAudioFile(archivio.fileAudio(trascrizione)) { frazione ->
+            // Il modello chiesto con "Ritrascrivi con…", altrimenti quello attivo
+            val esito = localAiManager.transcribeAudioFile(
+                file = archivio.fileAudio(trascrizione),
+                idModello = trascrizione.idModelloRichiesto,
+            ) { frazione ->
                 avanzamento.value = frazione
             }
             // Fermato prima di salvare l'esito, così un avanzamento in ritardo non lo sovrascrive

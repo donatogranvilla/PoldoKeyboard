@@ -20,6 +20,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Autorenew
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Tune
@@ -59,6 +60,7 @@ import io.github.donatogranvilla.poldokeyboard.comune.tastieraAbilitata
 import io.github.donatogranvilla.poldokeyboard.modelli.ModelliActivity
 import io.github.donatogranvilla.poldokeyboard.servizio.ServizioTrascrizione
 import kotlinx.coroutines.launch
+import org.florisboard.lib.localai.engine.ModelloInstallato
 import org.florisboard.lib.localai.model.ModelManager
 
 /**
@@ -75,10 +77,13 @@ fun SchermataPrincipale(ripresa: Int) {
     val flussoStorico = remember { archivio.osservaTutte() }
     val storico by flussoStorico.collectAsState(initial = emptyList())
     val modelManager = remember { ModelManager(context.applicationContext) }
-    var aperta by remember { mutableStateOf<Trascrizione?>(null) }
+    // Si ricordano gli id, non le righe: così testo e stato seguono gli aggiornamenti del servizio
+    var idAperta by remember { mutableStateOf<Long?>(null) }
+    var idDaRitrascrivere by remember { mutableStateOf<Long?>(null) }
     val tastieraAttiva = remember(ripresa) { tastieraAbilitata(context) }
     // Si ricontrolla al ritorno dalla schermata dei modelli, che è un'altra activity
     val modelloPresente = remember(ripresa) { modelManager.getActiveInstalledModel() != null }
+    val modelli = rememberModelliDisponibili(ripresa)
 
     RichiestaPermessoNotifiche()
 
@@ -133,37 +138,62 @@ fun SchermataPrincipale(ripresa: Int) {
             items(storico, key = { it.id }) { trascrizione ->
                 VoceStorico(
                     trascrizione = trascrizione,
-                    onApri = { aperta = trascrizione },
+                    modello = modelloTrascrizione(trascrizione, modelli),
+                    onApri = { idAperta = trascrizione.id },
                     onElimina = { scope.launch { archivio.elimina(trascrizione) } },
+                    // Si riprova con il modello attivo: quello richiesto potrebbe essere la causa dell'errore
                     onRiprova = {
                         scope.launch {
-                            archivio.rimettiInCoda(trascrizione.id)
+                            archivio.ritrascrivi(trascrizione.id, idModello = null)
                             ServizioTrascrizione.avvia(context)
                         }
                     },
+                    onRitrascrivi = { idDaRitrascrivere = trascrizione.id },
                 )
             }
         }
     }
 
-    aperta?.let { trascrizione ->
+    storico.find { it.id == idAperta }?.let { trascrizione ->
         TestoCompleto(
             trascrizione = trascrizione,
             onCopia = { testo -> Appunti.copia(context, testo) },
-            onChiudi = { aperta = null },
+            onChiudi = { idAperta = null },
+        )
+    }
+    storico.find { it.id == idDaRitrascrivere }?.let { trascrizione ->
+        RitrascriviCon(
+            trascrizione = trascrizione,
+            modelli = modelli,
+            onScelta = { modello ->
+                idDaRitrascrivere = null
+                scope.launch {
+                    archivio.ritrascrivi(trascrizione.id, modello.id)
+                    ServizioTrascrizione.avvia(context)
+                }
+            },
+            onApriModelli = {
+                idDaRitrascrivere = null
+                ModelliActivity.apri(context)
+            },
+            onChiudi = { idDaRitrascrivere = null },
         )
     }
 }
 
 /**
- * Una trascrizione dello storico: data, testo o stato, e i pulsanti per riprovarla o eliminarla.
+ * Una trascrizione dello storico: data, testo o stato, il modello che l'ha fatta, e i pulsanti
+ * per ritrascriverla con un altro modello, riprovarla dopo un errore o eliminarla.
+ * @param modello Con quale modello è stata fatta, o null se non si sa.
  */
 @Composable
 private fun VoceStorico(
     trascrizione: Trascrizione,
+    modello: String?,
     onApri: () -> Unit,
     onElimina: () -> Unit,
     onRiprova: () -> Unit,
+    onRitrascrivi: () -> Unit,
 ) {
     Card(
         modifier = Modifier
@@ -178,6 +208,10 @@ private fun VoceStorico(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.weight(1f),
                 )
+                // Mentre il servizio la elabora non si può rimettere in coda
+                IconButton(onClick = onRitrascrivi, enabled = trascrizione.stato != StatoTrascrizione.IN_CORSO) {
+                    Icon(Icons.Default.Autorenew, contentDescription = stringResource(R.string.azione_ritrascrivi))
+                }
                 if (trascrizione.stato == StatoTrascrizione.ERRORE) {
                     IconButton(onClick = onRiprova) {
                         Icon(Icons.Default.Refresh, contentDescription = stringResource(R.string.azione_riprova))
@@ -193,8 +227,58 @@ private fun VoceStorico(
                 maxLines = 6,
                 overflow = TextOverflow.Ellipsis,
             )
+            if (modello != null) {
+                Text(
+                    text = modello,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
     }
+}
+
+/**
+ * La scelta del modello con cui ritrascrivere un vocale. Se non ci sono modelli, porta alla loro gestione.
+ * @param modelli I modelli installati; null finché non sono stati letti.
+ */
+@Composable
+private fun RitrascriviCon(
+    trascrizione: Trascrizione,
+    modelli: ModelliDisponibili?,
+    onScelta: (ModelloInstallato) -> Unit,
+    onApriModelli: () -> Unit,
+    onChiudi: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onChiudi,
+        title = { Text(stringResource(R.string.ritrascrivi_titolo)) },
+        text = {
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                when {
+                    modelli == null -> Unit
+                    modelli.installati.isEmpty() -> Text(stringResource(R.string.ritrascrivi_nessun_modello))
+                    else -> {
+                        Text(stringResource(R.string.ritrascrivi_spiegazione), style = MaterialTheme.typography.bodySmall)
+                        ElencoModelliPerRitrascrivere(modelli = modelli, idUsato = trascrizione.idModello, onScelta = onScelta)
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onApriModelli) {
+                Text(stringResource(R.string.guida_modello_pulsante))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onChiudi) {
+                Text(stringResource(R.string.azione_annulla))
+            }
+        },
+    )
 }
 
 /**

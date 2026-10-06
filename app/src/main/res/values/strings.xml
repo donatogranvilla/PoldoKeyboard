@@ -33,12 +33,22 @@
     <string name="azione_pagina">Model page</string>
     <string name="azione_scarica">Download</string>
     <string name="azione_usa">Use this</string>
+    <string name="azione_ritrascrivi">Re-transcribe with…</string>
     <string name="trascrizione_copiata">Transcription copied</string>
 
     <!-- Stati di una trascrizione -->
     <string name="stato_in_coda">Queued: it will start as soon as the engine is free.</string>
     <string name="stato_in_corso">Transcribing: %1$s</string>
     <string name="stato_errore">Failed: %1$s</string>
+    <string name="modello_usato">Transcribed with %1$s</string>
+    <string name="modello_richiesto">Re-transcribing with %1$s</string>
+
+    <!-- Ritrascrivere con un altro modello -->
+    <string name="ritrascrivi_titolo">Re-transcribe with</string>
+    <string name="ritrascrivi_spiegazione">The current text stays until the new one arrives. Bigger models are more accurate but slower.</string>
+    <string name="ritrascrivi_nessun_modello">No model installed: import one from the models screen.</string>
+    <string name="elenco_in_uso">in use</string>
+    <string name="elenco_usato_per_questo">produced this text</string>
 
     <!-- Schermata principale -->
     <string name="modelli">Transcription models</string>

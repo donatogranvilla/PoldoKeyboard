@@ -134,8 +134,8 @@ class ArchivioTrascrizioni private constructor(context: Context) {
     }
 
     /**
-     * Rimette in coda una trascrizione, per riprovare dopo un errore o con un altro modello.
-     * Il testo precedente resta visibile finché non arriva quello nuovo.
+     * Rimette in coda una trascrizione interrotta, con lo stesso modello richiesto.
+     * Il testo precedente resta finché non arriva quello nuovo.
      */
     suspend fun rimettiInCoda(id: Long) {
         withContext(Dispatchers.IO) {
@@ -146,6 +146,26 @@ class ArchivioTrascrizioni private constructor(context: Context) {
                     tentativi = 0,
                     errore = null,
                     conclusaIl = null,
+                )
+            }
+        }
+    }
+
+    /**
+     * Rimette in coda una trascrizione su richiesta dell'utente: per riprovare dopo un errore o per rifarla
+     * con un altro modello. Il testo precedente resta finché non arriva quello nuovo.
+     * @param idModello Il modello da usare, o null per quello attivo quando il servizio la prende.
+     */
+    suspend fun ritrascrivi(id: Long, idModello: String?) {
+        withContext(Dispatchers.IO) {
+            modifica(id) {
+                it.copy(
+                    stato = StatoTrascrizione.IN_CODA,
+                    avanzamento = 0f,
+                    tentativi = 0,
+                    errore = null,
+                    conclusaIl = null,
+                    idModelloRichiesto = idModello,
                 )
             }
         }

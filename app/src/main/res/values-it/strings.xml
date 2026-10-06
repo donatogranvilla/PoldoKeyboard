@@ -31,12 +31,22 @@
     <string name="azione_pagina">Pagina del modello</string>
     <string name="azione_scarica">Scarica</string>
     <string name="azione_usa">Usa questo</string>
+    <string name="azione_ritrascrivi">Ritrascrivi con…</string>
     <string name="trascrizione_copiata">Trascrizione copiata</string>
 
     <!-- Stati di una trascrizione -->
     <string name="stato_in_coda">In coda: partirà appena il motore è libero.</string>
     <string name="stato_in_corso">Trascrizione in corso: %1$s</string>
     <string name="stato_errore">Non riuscita: %1$s</string>
+    <string name="modello_usato">Trascritta con %1$s</string>
+    <string name="modello_richiesto">Ritrascrizione con %1$s</string>
+
+    <!-- Ritrascrivere con un altro modello -->
+    <string name="ritrascrivi_titolo">Ritrascrivi con</string>
+    <string name="ritrascrivi_spiegazione">Il testo attuale resta finché non arriva quello nuovo. I modelli più grandi sono più accurati ma più lenti.</string>
+    <string name="ritrascrivi_nessun_modello">Nessun modello installato: importane uno dalla schermata dei modelli.</string>
+    <string name="elenco_in_uso">in uso</string>
+    <string name="elenco_usato_per_questo">ha prodotto questo testo</string>
 
     <!-- Schermata principale -->
     <string name="modelli">Modelli di trascrizione</string>

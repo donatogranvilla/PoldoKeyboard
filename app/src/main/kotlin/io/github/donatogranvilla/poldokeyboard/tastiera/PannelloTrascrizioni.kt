@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Autorenew
 import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.Button
@@ -35,6 +36,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,8 +50,12 @@ import io.github.donatogranvilla.poldokeyboard.archivio.ArchivioTrascrizioni
 import io.github.donatogranvilla.poldokeyboard.archivio.StatoTrascrizione
 import io.github.donatogranvilla.poldokeyboard.archivio.Trascrizione
 import io.github.donatogranvilla.poldokeyboard.servizio.ServizioTrascrizione
+import io.github.donatogranvilla.poldokeyboard.ui.ElencoModelliPerRitrascrivere
 import io.github.donatogranvilla.poldokeyboard.ui.dataOra
+import io.github.donatogranvilla.poldokeyboard.ui.rememberModelliDisponibili
 import io.github.donatogranvilla.poldokeyboard.ui.testoTrascrizione
+import kotlinx.coroutines.launch
+import org.florisboard.lib.localai.engine.ModelloInstallato
 
 /** Altezza del pannello rispetto allo schermo: più di una tastiera, per leggere comodamente. */
 private const val QUOTA_ALTEZZA_SCHERMO = 0.45f
@@ -66,11 +72,13 @@ fun PannelloTrascrizioni(
     onApriModelli: () -> Unit,
 ) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val archivio = remember { ArchivioTrascrizioni.istanza(context) }
     val flussoRecenti = remember { archivio.osservaRecenti() }
     val trascrizioni by flussoRecenti.collectAsState(initial = emptyList())
     // Si ricorda l'id, non la riga: così il testo aperto segue gli aggiornamenti del servizio
     var idAperta by remember { mutableStateOf<Long?>(null) }
+    var sceltaModello by remember { mutableStateOf(false) }
     val aperta = trascrizioni.find { it.id == idAperta }
     val altezza = (LocalConfiguration.current.screenHeightDp * QUOTA_ALTEZZA_SCHERMO).dp
 
@@ -92,9 +100,24 @@ fun PannelloTrascrizioni(
         Column(modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)) {
             Intestazione(onApriModelli = onApriModelli, onTornaAllaTastiera = onTornaAllaTastiera)
             when {
+                // In una tastiera le finestre di dialogo non si aprono: la scelta del modello prende il posto del testo
+                aperta != null && sceltaModello -> RitrascriviInTastiera(
+                    trascrizione = aperta,
+                    onScelta = { modello ->
+                        sceltaModello = false
+                        scope.launch {
+                            archivio.ritrascrivi(aperta.id, modello.id)
+                            // Se Android non consente l'avvio da qui, ci pensa il controllo dei vocali in coda
+                            runCatching { ServizioTrascrizione.avvia(context) }
+                        }
+                    },
+                    onApriModelli = onApriModelli,
+                    onAnnulla = { sceltaModello = false },
+                )
                 aperta != null -> TestoIntero(
                     trascrizione = aperta,
                     onChiudi = { idAperta = null },
+                    onRitrascrivi = { sceltaModello = true },
                     onInserisci = onInserisci,
                     onCopia = onCopia,
                 )
@@ -109,7 +132,13 @@ fun PannelloTrascrizioni(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     items(trascrizioni, key = { it.id }) { trascrizione ->
-                        Anteprima(trascrizione = trascrizione, onClick = { idAperta = trascrizione.id })
+                        Anteprima(
+                            trascrizione = trascrizione,
+                            onClick = {
+                                idAperta = trascrizione.id
+                                sceltaModello = false
+                            },
+                        )
                     }
                 }
             }
@@ -169,23 +198,86 @@ private fun Anteprima(trascrizione: Trascrizione, onClick: () -> Unit) {
 }
 
 /**
- * Il testo intero di una trascrizione, scorrevole, con i pulsanti per inserirlo o copiarlo.
+ * La scelta del modello con cui ritrascrivere un vocale, al posto del testo. Senza modelli
+ * porta alla loro gestione.
+ */
+@Composable
+private fun RitrascriviInTastiera(
+    trascrizione: Trascrizione,
+    onScelta: (ModelloInstallato) -> Unit,
+    onApriModelli: () -> Unit,
+    onAnnulla: () -> Unit,
+) {
+    val modelli = rememberModelliDisponibili(trascrizione.id)
+    Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
+        Text(text = stringResource(R.string.ritrascrivi_titolo), style = MaterialTheme.typography.titleSmall)
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState()),
+        ) {
+            when {
+                modelli == null -> Unit
+                modelli.installati.isEmpty() -> Text(
+                    text = stringResource(R.string.ritrascrivi_nessun_modello),
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(vertical = 8.dp),
+                )
+                else -> {
+                    Text(
+                        text = stringResource(R.string.ritrascrivi_spiegazione),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    ElencoModelliPerRitrascrivere(modelli = modelli, idUsato = trascrizione.idModello, onScelta = onScelta)
+                }
+            }
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            TextButton(onClick = onAnnulla) {
+                Text(stringResource(R.string.azione_annulla))
+            }
+            Spacer(modifier = Modifier.weight(1f))
+            TextButton(onClick = onApriModelli) {
+                Text(stringResource(R.string.guida_modello_pulsante))
+            }
+        }
+    }
+}
+
+/**
+ * Il testo intero di una trascrizione, scorrevole, con i pulsanti per inserirlo o copiarlo
+ * e per ritrascriverlo con un altro modello.
  */
 @Composable
 private fun TestoIntero(
     trascrizione: Trascrizione,
     onChiudi: () -> Unit,
+    onRitrascrivi: () -> Unit,
     onInserisci: (String) -> Unit,
     onCopia: (String) -> Unit,
 ) {
     val testo = testoTrascrizione(trascrizione)
     val pronta = trascrizione.stato == StatoTrascrizione.COMPLETATA && testo.isNotBlank()
     Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
-        Text(
-            text = dataOra(trascrizione.creataIl),
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = dataOra(trascrizione.creataIl),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.weight(1f),
+            )
+            // Mentre il servizio la elabora non si può rimettere in coda
+            IconButton(onClick = onRitrascrivi, enabled = trascrizione.stato != StatoTrascrizione.IN_CORSO) {
+                Icon(Icons.Default.Autorenew, contentDescription = stringResource(R.string.azione_ritrascrivi))
+            }
+        }
         Text(
             text = testo,
             style = MaterialTheme.typography.bodyLarge,

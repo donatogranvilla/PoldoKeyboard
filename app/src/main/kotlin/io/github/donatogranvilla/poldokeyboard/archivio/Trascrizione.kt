@@ -26,6 +26,8 @@ enum class StatoTrascrizione {
  * @property avanzamento Frazione elaborata tra 0 e 1, aggiornata dal servizio.
  * @property tentativi Quante volte il servizio l'ha presa in carico.
  * @property vista false finché l'utente non ha visto l'ultimo aggiornamento, nell'app o nella tastiera di trascrizione.
+ * @property idModelloRichiesto Il modello con cui trascriverla, se l'utente l'ha chiesto con "Ritrascrivi con…";
+ *   null per quello attivo.
  */
 @Entity(tableName = TABELLA_TRASCRIZIONI)
 data class Trascrizione(
@@ -43,6 +45,7 @@ data class Trascrizione(
     @ColumnInfo(name = "tempo_inferenza_ms") val tempoInferenzaMs: Long? = null,
     @ColumnInfo(name = "conclusa_il") val conclusaIl: Long? = null,
     val vista: Boolean = false,
+    @ColumnInfo(name = "id_modello_richiesto") val idModelloRichiesto: String? = null,
 )
 
 /**

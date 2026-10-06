@@ -8,6 +8,8 @@ import androidx.room.Query
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.Update
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -69,12 +71,22 @@ interface TrascrizioniDao {
  * Database dello storico delle trascrizioni, condiviso dal processo dell'app e da quello
  * del servizio di trascrizione.
  */
-@Database(entities = [Trascrizione::class], version = 1)
+@Database(entities = [Trascrizione::class], version = 2)
 abstract class DatabaseTrascrizioni : RoomDatabase() {
     /** Il DAO della tabella delle trascrizioni. */
     abstract fun trascrizioniDao(): TrascrizioniDao
 
     companion object {
+        /**
+         * Versione 2: il modello richiesto per ritrascrivere un vocale. La colonna parte vuota,
+         * cioè con il modello attivo, e lo storico resta com'era.
+         */
+        private val MIGRAZIONE_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE $TABELLA_TRASCRIZIONI ADD COLUMN id_modello_richiesto TEXT")
+            }
+        }
+
         /**
          * Apre il database. L'invalidazione multi-istanza avvisa ogni processo delle scritture degli altri:
          * così app e tastiera vedono l'avanzamento calcolato dal servizio.
@@ -84,6 +96,7 @@ abstract class DatabaseTrascrizioni : RoomDatabase() {
         fun nuovo(context: Context): DatabaseTrascrizioni {
             return Room
                 .databaseBuilder(context, DatabaseTrascrizioni::class.java, TABELLA_TRASCRIZIONI)
+                .addMigrations(MIGRAZIONE_1_2)
                 .enableMultiInstanceInvalidation()
                 .build()
         }
