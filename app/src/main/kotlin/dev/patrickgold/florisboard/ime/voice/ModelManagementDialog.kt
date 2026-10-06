@@ -23,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import dev.patrickgold.florisboard.app.FlorisPreferenceStore
 import dev.patrickgold.jetpref.datastore.model.collectAsState
 import kotlinx.coroutines.launch
@@ -61,8 +62,8 @@ fun ModelManagementDialog(
                 }
                 avanzamentoImport = null
                 result.onSuccess { importato ->
+                    // importaModello l'ha già reso attivo; lo caricherà il servizio di trascrizione, nel suo processo
                     activeModelId = importato.id
-                    localAiManager.switchModel(importato.id)
                     onModelSelected(importato.id)
                     Toast.makeText(context, "${importato.nome} importato e attivato.", Toast.LENGTH_SHORT).show()
                 }.onFailure { errore ->
@@ -85,10 +86,14 @@ fun ModelManagementDialog(
         context.startActivity(intent)
     }
 
-    Dialog(onDismissRequest = onDismiss) {
+    // Più larga della misura standard dei dialog, che sui telefoni lascia poco spazio alle schede dei modelli
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false),
+    ) {
         Card(
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxWidth(0.94f)
                 .fillMaxHeight(0.88f)
                 .padding(4.dp),
             shape = RoundedCornerShape(20.dp),
@@ -196,11 +201,10 @@ fun ModelManagementDialog(
                             isActive = isActive,
                             isRecommended = isRecommended,
                             onSelect = {
+                                // Solo la scelta: caricare il modello qui occuperebbe memoria nel processo della tastiera
+                                modelManager.setActiveModelId(model.id)
                                 activeModelId = model.id
-                                scope.launch {
-                                    localAiManager.switchModel(model.id)
-                                    onModelSelected(model.id)
-                                }
+                                onModelSelected(model.id)
                             },
                             onApriPaginaDownload = { apriPaginaDownload(model) },
                             onDelete = {
@@ -294,20 +298,18 @@ private fun ModelCardItem(
             )
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
-            // Titolo e Badge
+            // Titolo e Badge: il nome prende lo spazio libero e va a capo, i badge restano interi
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = model.name,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
+                Text(
+                    text = model.name,
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
 
                 Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     if (isRecommended) {
@@ -334,12 +336,8 @@ private fun ModelCardItem(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Indicatori Performance (Accuratezza e Velocità)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            // Indicatori uno per riga: tutti su una riga, sugli schermi stretti la dimensione restava senza spazio
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text("Accuratezza: ", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text("⭐".repeat(model.stelleAccuratezza), fontSize = 11.sp)

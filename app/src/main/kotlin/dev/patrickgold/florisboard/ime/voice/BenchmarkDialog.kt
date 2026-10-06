@@ -17,6 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import kotlinx.coroutines.launch
 import org.florisboard.lib.localai.LocalAiManager
 import org.florisboard.lib.localai.benchmark.BenchmarkSuite
@@ -59,10 +60,14 @@ fun BenchmarkDialog(
         }
     }
 
-    Dialog(onDismissRequest = { if (!isRunning) onDismiss() }) {
+    // Più larga della misura standard dei dialog, come la gestione dei modelli
+    Dialog(
+        onDismissRequest = { if (!isRunning) onDismiss() },
+        properties = DialogProperties(usePlatformDefaultWidth = false),
+    ) {
         Card(
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxWidth(0.94f)
                 .fillMaxHeight(0.9f)
                 .padding(4.dp),
             shape = RoundedCornerShape(20.dp),
@@ -286,10 +291,8 @@ private fun ScenarioResultCard(res: BenchmarkSuite.RisultatoScenario) {
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
+            // Valori uno per riga: tutti su una riga, sugli schermi stretti l'ultimo restava senza spazio
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(
                     text = "Durata audio: ${(res.durataAudioMs / 1000.0).toInt()}s",
                     style = MaterialTheme.typography.labelSmall,
