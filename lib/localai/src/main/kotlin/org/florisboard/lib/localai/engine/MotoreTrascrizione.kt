@@ -94,7 +94,7 @@ data class SegmentoVoce(
 data class OpzioniTrascrizione(
     val lingua: String? = null,
     val formattaPunteggiatura: Boolean = true,
-    val numThread: Int = Runtime.getRuntime().availableProcessors().coerceIn(2, 6),
+    val numThread: Int = CoreCpu.threadConsigliati(),
     val temperatura: Float = 0.0f,
     val traduciInInglese: Boolean = false,
 ) {
