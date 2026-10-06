@@ -1,27 +1,17 @@
-name: FlorisBoard CI
+name: PoldoKeyboard CI
 
+# A ogni push su qualsiasi branch, così ogni modifica produce un APK da provare; anche a mano dalla pagina Actions
 on:
   push:
-    branches: [ main ]
     paths-ignore:
-      - ".github/ISSUE_TEMPLATE/**"
-      - ".github/PULL_REQUEST_TEMPLATE.md"
-      - ".github/FUNDING.yml"
-      - ".dockerignore"
-      - ".editorconfig"
-      - "fastlane/**"
-      - "AI_POLICY.md"
-      - "CODE_OF_CONDUCT.md"
-      - "CONTRIBUTING.md"
+      - "**.md"
       - "LICENSE"
-      - "README.md"
-      - "ROADMAP.md"
-  pull_request:
-    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    # Versione fissa: dal 19 ottobre 2026 ubuntu-latest passa a Ubuntu 26 e cambierebbe gli strumenti sotto i piedi
+    runs-on: ubuntu-24.04
 
     steps:
       - uses: actions/checkout@v4
@@ -42,3 +32,7 @@ jobs:
         with:
           name: app-debug.apk
           path: app/build/outputs/apk/debug/app-debug.apk
+      # Dopo il caricamento dell'APK e senza bloccare la run: un test che fallisce non deve togliere l'APK da provare
+      - name: Unit tests
+        continue-on-error: true
+        run: ./gradlew testDebugUnitTest
