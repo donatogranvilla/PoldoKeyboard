@@ -131,6 +131,7 @@ La matrice dettagliata è consultabile in [`THIRD_PARTY_LICENSES/README.md`](fil
 - **CMake & Ninja**: CMake 3.22+ e Ninja
 
 ### Compilazione APK Debug
+Le build di debug, locali e della CI, sono firmate con la chiave del progetto `app/debug.keystore`: un APK nuovo si installa sopra il precedente senza perdere i modelli importati.
 ```powershell
 $env:JAVA_HOME = "C:\Program Files\Android\openjdk\jdk-21.0.8"
 $env:PATH = "$env:JAVA_HOME\bin;C:\Program Files\Microsoft Visual Studio\18\Professional\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin;C:\Program Files\Microsoft Visual Studio\18\Professional\Common7\IDE\CommonExtensions\Microsoft\CMake\Ninja;" + $env:PATH

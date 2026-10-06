@@ -83,6 +83,17 @@ configure<ApplicationExtension> {
         }
     }
 
+    signingConfigs {
+        getByName("debug") {
+            // Chiave di debug del progetto, la stessa in locale e in CI: l'APK si aggiorna senza disinstallarlo.
+            // Le credenziali sono quelle standard di debug di Android, non segrete.
+            storeFile = file("debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
+
     bundle {
         language {
             // We disable language split because FlorisBoard does not use
