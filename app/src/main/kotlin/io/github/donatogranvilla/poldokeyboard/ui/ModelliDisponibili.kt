@@ -36,7 +36,7 @@ data class ModelliDisponibili(val installati: List<ModelloInstallato>, val idAtt
 @Composable
 fun rememberModelliDisponibili(chiave: Any?): ModelliDisponibili? {
     val context = LocalContext.current
-    val stato = produceState<ModelliDisponibili?>(initialValue = null, chiave) {
+    val stato = produceState<ModelliDisponibili?>(null, chiave) {
         // Legge anche il catalogo, la prima volta: apre l'APK, meglio farlo qui che nel thread principale
         value = withContext(Dispatchers.IO) {
             val modelManager = ModelManager(context.applicationContext)
