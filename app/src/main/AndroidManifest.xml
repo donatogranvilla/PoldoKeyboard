@@ -55,6 +55,20 @@
             android:foregroundServiceType="mediaProcessing|dataSync"
             android:process=":trascrizione" />
 
+        <!-- Tastiera di sola trascrizione: ci si passa dalla propria tastiera e si torna indietro da soli -->
+        <service
+            android:name=".tastiera.TastieraTrascrizioni"
+            android:exported="true"
+            android:label="@string/tastiera_nome"
+            android:permission="android.permission.BIND_INPUT_METHOD">
+            <intent-filter>
+                <action android:name="android.view.InputMethod" />
+            </intent-filter>
+            <meta-data
+                android:name="android.view.im"
+                android:resource="@xml/metodo_input" />
+        </service>
+
         <!-- Pulsante Copia della notifica con il testo pronto -->
         <receiver
             android:name=".servizio.CopiaTrascrizioneReceiver"

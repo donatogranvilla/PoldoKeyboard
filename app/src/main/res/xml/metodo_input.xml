@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tastiera di sola trascrizione. Il sottotipo "voice", come la digitazione vocale di Google, la rende
+      raggiungibile anche dalle tastiere che passano a una tastiera vocale col tasto microfono -->
+<input-method xmlns:android="http://schemas.android.com/apk/res/android"
+    android:settingsActivity="io.github.donatogranvilla.poldokeyboard.MainActivity"
+    android:supportsSwitchingToNextInputMethod="false">
+
+    <subtype
+        android:icon="@drawable/ic_transcription"
+        android:imeSubtypeMode="voice"
+        android:label="@string/tastiera_sottotipo" />
+
+</input-method>
