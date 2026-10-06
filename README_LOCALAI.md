@@ -2,7 +2,7 @@
 
 **PoldoKeyboard** è una tastiera Android basata su **FlorisBoard** (Apache-2.0) che trascrive in locale i messaggi vocali con i modelli **Whisper** (MIT).
 
-> **Stato:** il motore nativo whisper.cpp non è ancora integrato (fase F2 del piano). Finché manca, la trascrizione non è reale.
+> **Stato:** whisper.cpp 1.9.4 è integrato come submodule e compilato per arm64-v8a (fase F2 del piano): la trascrizione è da provare e misurare sul telefono. Sui dispositivi a 32 bit o x86 il motore risulta non disponibile.
 
 Il progetto è concepito specificamente per:
 1. **Trascrivere i messaggi vocali di WhatsApp** tramite il menu di condivisione di sistema (`ACTION_SEND`, o `ACTION_SEND_MULTIPLE` per più vocali insieme), senza abbandonare la chat: il vocale entra in coda, un servizio lo trascrive in un processo separato e il testo compare nella scheda Trascrizioni della tastiera.
@@ -129,6 +129,7 @@ La matrice dettagliata è consultabile in [`THIRD_PARTY_LICENSES/README.md`](fil
 - **Android SDK**: Compile/Target SDK 37 (API 37 preview)
 - **Android NDK**: r27c (`27.2.12479018`)
 - **CMake & Ninja**: CMake 3.22+ e Ninja
+- **whisper.cpp**: è un submodule git in `lib/localai/src/main/cpp/whisper.cpp`; dopo il clone scaricalo con `git submodule update --init`.
 
 ### Compilazione APK Debug
 Le build di debug, locali e della CI, sono firmate con la chiave del progetto `app/debug.keystore`: un APK nuovo si installa sopra il precedente senza perdere i modelli importati.

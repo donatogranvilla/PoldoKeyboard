@@ -1,0 +1,4 @@
+[submodule "lib/localai/src/main/cpp/whisper.cpp"]
+	path = lib/localai/src/main/cpp/whisper.cpp
+	url = https://github.com/ggml-org/whisper.cpp
+	shallow = true

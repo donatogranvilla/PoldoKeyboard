@@ -13,7 +13,7 @@ In accordance with project requirements, every dependency is audited to ensure c
 | **FlorisBoard** | [florisboard/florisboard](https://github.com/florisboard/florisboard) | 0.6.0-alpha02 | Apache-2.0 | **Yes** | Yes | Full source fork; NOTICE file maintained. |
 | **AndroidX Libraries** | Google / Android Open Source Project | Various | Apache-2.0 | **Yes** | Yes | Core, Lifecycle, Compose runtime & UI. |
 | **Kotlin & Coroutines** | JetBrains | 2.4.x / 1.10.x | Apache-2.0 | **Yes** | Yes | Standard Kotlin runtime and coroutines. |
-| **whisper.cpp** | [ggerganov/whisper.cpp](https://github.com/ggerganov/whisper.cpp) | 1.7.x | MIT | **Yes** | Yes | Highly optimized C/C++ ASR engine with ARM NEON support. |
+| **whisper.cpp** (with **ggml**) | [ggml-org/whisper.cpp](https://github.com/ggml-org/whisper.cpp) | 1.9.4 (git submodule) | MIT | **Yes** | Yes | C/C++ ASR engine, built from source for arm64-v8a only (ARMv8.2 with dotprod and fp16). |
 | **sherpa-onnx** | [k2-fsa/sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) | Optional/Alternative | Apache-2.0 | **Yes** | Yes | Next-gen Kaldi ONNX runtime bridge. Model licenses checked separately. |
 
 ---
@@ -39,4 +39,4 @@ In accordance with project requirements, every dependency is audited to ensure c
 
 - **No Remote Telemetry**: No Firebase, no Crashlytics, no remote telemetry SDKs.
 - **Local Storage**: Models are downloaded by the user with a browser, imported through the system file picker, verified against their SHA-256 and stored in private no-backup storage (`context.noBackupFilesDir/modelli/`). The app has no INTERNET permission.
-- **No Cloud Inference**: Audio data processed through Android `MediaCodec` and native ASR remains strictly on-device in volatile memory and is never transmitted over any network interface.
+- **No Cloud Inference**: Audio is decoded with Android `MediaCodec` and transcribed by the native engine on the device; it is never transmitted over any network interface. Shared voice messages are copied to private no-backup storage (`context.noBackupFilesDir/vocali/`) and stay there, with their transcriptions, until the user deletes them.

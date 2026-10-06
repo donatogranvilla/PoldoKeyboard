@@ -34,12 +34,32 @@ kotlin {
 configure<LibraryExtension> {
     namespace = "org.florisboard.lib.localai"
     compileSdk = providers.gradleProperty("projectCompileSdk").get().toInt()
+    // Versione locale facoltativa (gradle.properties dell'utente), altrimenti quella di FlorisBoard
+    ndkVersion = providers.gradleProperty("poldo.ndkVersion").getOrElse(tools.versions.ndk.get())
 
     defaultConfig {
         minSdk = providers.gradleProperty("projectMinSdk").get().toInt()
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
+
+        externalNativeBuild {
+            cmake {
+                targets("whisper_jni")
+            }
+        }
+
+        ndk {
+            // whisper.cpp solo per i telefoni a 64 bit: altrove il motore risulta non disponibile
+            abiFilters += "arm64-v8a"
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            version = providers.gradleProperty("poldo.cmakeVersion").getOrElse(tools.versions.cmake.get())
+            path("src/main/cpp/CMakeLists.txt")
+        }
     }
 
     buildTypes {
