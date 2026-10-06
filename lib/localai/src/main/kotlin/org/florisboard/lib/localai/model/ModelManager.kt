@@ -4,6 +4,8 @@ import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
@@ -82,6 +84,13 @@ class ModelManager(private val context: Context) {
     }
 
     /**
+     * Lo spazio che il modello occupa nella memoria del telefono: il suo file, o tutti i file della sua cartella.
+     */
+    fun spazioOccupato(modello: ModelloInstallato): Long {
+        return modello.percorsoFile.walkTopDown().filter { it.isFile }.sumOf { it.length() }
+    }
+
+    /**
      * Restituisce l'ID del modello attualmente selezionato dall'utente. Se quello salvato non c'è più,
      * il primo installato, oppure quello consigliato per il dispositivo.
      */
@@ -108,7 +117,8 @@ class ModelManager(private val context: Context) {
 
     /**
      * Primo passo dell'import: copia il file scelto in memoria privata calcolandone l'impronta, e ne riconosce
-     * il formato. Il file resta in attesa di [completaImport] o [annullaImport].
+     * il formato. Il file resta in attesa di [completaImport] o [annullaImport]. Se la coroutine viene annullata
+     * la copia si ferma e il file si cancella.
      * @param avanzamento Frazione copiata tra 0 e 1, notificata solo se il provider espone la dimensione.
      */
     suspend fun analizzaImport(sorgente: Uri, avanzamento: (Float) -> Unit = {}): Result<AnalisiImport> =
@@ -133,7 +143,8 @@ class ModelManager(private val context: Context) {
 
     /**
      * Secondo passo dell'import: installa il file analizzato e lo rende attivo. I modelli del catalogo
-     * si installano da soli; per gli altri servono i dati scelti dall'utente.
+     * si installano da soli; per gli altri servono i dati scelti dall'utente. Se la coroutine viene annullata
+     * l'estrazione si ferma e non resta nulla di installato a metà.
      * @param personalizzato Nome, lingue e architettura di un modello fuori catalogo; ignorato per il catalogo.
      * @param avanzamento Frazione dell'archivio estratta, per i modelli sherpa-onnx.
      */
@@ -142,19 +153,25 @@ class ModelManager(private val context: Context) {
         personalizzato: ModelloPersonalizzato?,
         avanzamento: (Float) -> Unit = {},
     ): Result<ModelloInstallato> = withContext(Dispatchers.IO) {
+        // L'estrazione non sospende mai: l'annullamento si controlla a ogni avanzamento
+        val contesto = currentCoroutineContext()
+        val avanzamentoAnnullabile: (Float) -> Unit = { frazione ->
+            contesto.ensureActive()
+            avanzamento(frazione)
+        }
         runCatching {
             check(fileImport.exists()) { "Nessun import in corso." }
             val catalogo = analisi.modelloCatalogo
             val modello = if (catalogo != null) {
                 verificaCompatibilita(analisi.formato, catalogo.architettura)
-                installa(catalogo.id, catalogo.architettura, analisi.formato, avanzamento)
+                installa(catalogo.id, catalogo.architettura, analisi.formato, avanzamentoAnnullabile)
                 catalogo.toModelloInstallato(getModelFile(catalogo))
             } else {
                 val dati = requireNotNull(personalizzato) {
                     "Per un modello fuori catalogo servono nome, lingue e architettura."
                 }.copy(id = PREFISSO_PERSONALIZZATO + analisi.impronta.take(12))
                 verificaCompatibilita(analisi.formato, dati.architettura)
-                installa(dati.id, dati.architettura, analisi.formato, avanzamento)
+                installa(dati.id, dati.architettura, analisi.formato, avanzamentoAnnullabile)
                 File(modelsDir, "${dati.id}.json").writeText(formatoJson.encodeToString(dati))
                 dati.toModelloInstallato(percorsoModello(dati.id, dati.architettura))
             }
@@ -197,8 +214,8 @@ class ModelManager(private val context: Context) {
         avanzamento: (Float) -> Unit,
     ) {
         val destinazione = percorsoModello(id, architettura)
-        destinazione.deleteRecursively()
         if (architettura.singoloFile) {
+            destinazione.delete()
             check(fileImport.renameTo(destinazione)) { "Impossibile salvare il modello nella memoria privata." }
             return
         }
@@ -208,6 +225,8 @@ class ModelManager(private val context: Context) {
             EstrattoreArchivi.estrai(fileImport, formato, temporanea, avanzamento)
             // Prima di renderlo disponibile si controlla che ci siano i file che l'architettura richiede
             FileModelloSherpa.configurazione(temporanea, architettura, numeroThread = 1, lingua = null)
+            // Lo stesso modello già installato si sostituisce solo ora che il nuovo è completo
+            destinazione.deleteRecursively()
             check(temporanea.renameTo(destinazione)) { "Impossibile salvare il modello nella memoria privata." }
         } finally {
             temporanea.deleteRecursively()
@@ -288,11 +307,11 @@ class ModelManager(private val context: Context) {
 
     /**
      * Copia la sorgente nel file di destinazione calcolandone lo SHA-256 nello stesso passaggio, e conserva
-     * i primi byte per riconoscerne il formato.
+     * i primi byte per riconoscerne il formato. Si ferma tra un blocco e l'altro se la coroutine viene annullata.
      * @param inizio Riceve i primi byte del file.
      * @return L'impronta SHA-256 in esadecimale minuscolo.
      */
-    private fun copiaCalcolandoImpronta(
+    private suspend fun copiaCalcolandoImpronta(
         sorgente: Uri,
         destinazione: File,
         dimensioneAttesa: Long?,
@@ -307,6 +326,7 @@ class ModelManager(private val context: Context) {
                 val buffer = ByteArray(DIMENSIONE_BLOCCO)
                 var byteCopiati = 0L
                 while (true) {
+                    currentCoroutineContext().ensureActive()
                     val letti = ingresso.read(buffer)
                     if (letti < 0) break
                     // I primi byte servono a riconoscere il formato

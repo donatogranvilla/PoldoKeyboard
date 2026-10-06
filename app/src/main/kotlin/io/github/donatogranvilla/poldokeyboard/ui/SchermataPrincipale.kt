@@ -42,7 +42,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -57,10 +56,10 @@ import io.github.donatogranvilla.poldokeyboard.archivio.StatoTrascrizione
 import io.github.donatogranvilla.poldokeyboard.archivio.Trascrizione
 import io.github.donatogranvilla.poldokeyboard.comune.Appunti
 import io.github.donatogranvilla.poldokeyboard.comune.tastieraAbilitata
-import io.github.donatogranvilla.poldokeyboard.modelli.ModelManagementDialog
+import io.github.donatogranvilla.poldokeyboard.modelli.ModelliActivity
 import io.github.donatogranvilla.poldokeyboard.servizio.ServizioTrascrizione
 import kotlinx.coroutines.launch
-import org.florisboard.lib.localai.LocalAiManager
+import org.florisboard.lib.localai.model.ModelManager
 
 /**
  * Schermata principale: le guide per attivare la tastiera e importare un modello, se mancano,
@@ -69,19 +68,17 @@ import org.florisboard.lib.localai.LocalAiManager
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SchermataPrincipale(ripresa: Int, apriModelliAllAvvio: Boolean) {
+fun SchermataPrincipale(ripresa: Int) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val archivio = remember { ArchivioTrascrizioni.istanza(context) }
     val flussoStorico = remember { archivio.osservaTutte() }
     val storico by flussoStorico.collectAsState(initial = emptyList())
-    val localAiManager = remember { LocalAiManager(context.applicationContext) }
-    var mostraModelli by rememberSaveable { mutableStateOf(apriModelliAllAvvio) }
+    val modelManager = remember { ModelManager(context.applicationContext) }
     var aperta by remember { mutableStateOf<Trascrizione?>(null) }
     val tastieraAttiva = remember(ripresa) { tastieraAbilitata(context) }
-    val modelloPresente = remember(ripresa, mostraModelli) {
-        localAiManager.modelManager.getActiveInstalledModel() != null
-    }
+    // Si ricontrolla al ritorno dalla schermata dei modelli, che è un'altra activity
+    val modelloPresente = remember(ripresa) { modelManager.getActiveInstalledModel() != null }
 
     RichiestaPermessoNotifiche()
 
@@ -90,7 +87,7 @@ fun SchermataPrincipale(ripresa: Int, apriModelliAllAvvio: Boolean) {
             TopAppBar(
                 title = { Text(stringResource(R.string.app_name)) },
                 actions = {
-                    IconButton(onClick = { mostraModelli = true }) {
+                    IconButton(onClick = { ModelliActivity.apri(context) }) {
                         Icon(Icons.Default.Tune, contentDescription = stringResource(R.string.modelli))
                     }
                 },
@@ -120,7 +117,7 @@ fun SchermataPrincipale(ripresa: Int, apriModelliAllAvvio: Boolean) {
                         titolo = stringResource(R.string.guida_modello_titolo),
                         messaggio = stringResource(R.string.guida_modello_messaggio),
                         pulsante = stringResource(R.string.guida_modello_pulsante),
-                        onClick = { mostraModelli = true },
+                        onClick = { ModelliActivity.apri(context) },
                     )
                 }
             }
@@ -149,9 +146,6 @@ fun SchermataPrincipale(ripresa: Int, apriModelliAllAvvio: Boolean) {
         }
     }
 
-    if (mostraModelli) {
-        ModelManagementDialog(localAiManager = localAiManager, onDismiss = { mostraModelli = false })
-    }
     aperta?.let { trascrizione ->
         TestoCompleto(
             trascrizione = trascrizione,

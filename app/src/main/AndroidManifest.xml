@@ -29,6 +29,12 @@
             </intent-filter>
         </activity>
 
+        <!-- Gestione dei modelli di trascrizione: si apre dall'app e dalla tastiera di trascrizione -->
+        <activity
+            android:name=".modelli.ModelliActivity"
+            android:exported="false"
+            android:label="@string/modelli" />
+
         <!-- Riceve i vocali condivisi, anche più insieme, li mette in coda e si chiude subito.
               Senza finestra: non compare nelle app recenti e non porta in primo piano l'app -->
         <activity

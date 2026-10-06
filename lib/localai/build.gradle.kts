@@ -88,7 +88,8 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     // Estrazione degli archivi .tar.bz2 dei modelli sherpa-onnx
     implementation(libs.apache.commons.compress)
-    implementation(libs.kotlinx.serialization.json)
+    // api: le classi del catalogo sono @Serializable e l'app le usa
+    api(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.coroutines)
 
     testImplementation(libs.kotlin.test.junit5)

@@ -3,8 +3,8 @@ package io.github.donatogranvilla.poldokeyboard.tastiera
 import android.os.Build
 import android.view.inputmethod.InputMethodManager
 import androidx.compose.runtime.Composable
-import io.github.donatogranvilla.poldokeyboard.MainActivity
 import io.github.donatogranvilla.poldokeyboard.comune.Appunti
+import io.github.donatogranvilla.poldokeyboard.modelli.ModelliActivity
 import io.github.donatogranvilla.poldokeyboard.ui.TemaPoldo
 
 /**
@@ -20,7 +20,7 @@ class TastieraTrascrizioni : ServizioTastieraCompose() {
                 onInserisci = { testo -> inserisci(testo) },
                 onCopia = { testo -> Appunti.copia(this, testo) },
                 onTornaAllaTastiera = { tornaAllaTastiera() },
-                onApriModelli = { MainActivity.apriModelli(this) },
+                onApriModelli = { ModelliActivity.apri(this) },
             )
         }
     }

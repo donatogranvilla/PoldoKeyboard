@@ -1,5 +1,7 @@
 package org.florisboard.lib.localai.model
 
+import org.florisboard.lib.localai.engine.ArchitetturaModello
+
 /**
  * Il formato di un file scelto per l'import, riconosciuto dai primi byte e dal nome. Serve ad accettare
  * i formati giusti e a spiegare all'utente cosa scaricare quando il file non va bene.
@@ -77,6 +79,27 @@ object RiconoscitoreFormato {
             nome.endsWith(".pt") || nome.endsWith(".pth") || nome.startsWith("pytorch_model") -> FormatoFileModello.PYTORCH
             nome.endsWith(".onnx") || nome.endsWith(".ort") -> FormatoFileModello.ONNX_SINGOLO
             else -> FormatoFileModello.SCONOSCIUTO
+        }
+    }
+
+    /**
+     * L'architettura che il nome di un archivio sherpa-onnx lascia intuire, da proporre all'utente
+     * che importa un modello fuori catalogo; null se il nome non dice nulla. I nomi seguono quelli
+     * delle release ufficiali, come `sherpa-onnx-nemo-parakeet-tdt-0.6b-v3-int8.tar.bz2`.
+     */
+    fun architetturaProbabile(nomeFile: String?): ArchitetturaModello? {
+        val nome = nomeFile?.lowercase() ?: return null
+        return when {
+            // Prima i nomi più specifici: anche gli archivi Omnilingual contengono "ctc"
+            "omnilingual" in nome -> ArchitetturaModello.OMNILINGUAL_CTC
+            "moonshine" in nome -> ArchitetturaModello.MOONSHINE
+            "sense-voice" in nome || "sense_voice" in nome || "sensevoice" in nome -> ArchitetturaModello.SENSE_VOICE
+            "whisper" in nome -> ArchitetturaModello.WHISPER_ONNX
+            "zipformer" in nome -> ArchitetturaModello.ZIPFORMER_TRANSDUCER
+            // I modelli NeMo esistono in versione CTC e transducer, come Parakeet TDT-CTC e GigaAM
+            "ctc" in nome && ("nemo" in nome || "parakeet" in nome || "giga" in nome) -> ArchitetturaModello.NEMO_CTC
+            "parakeet" in nome || "giga" in nome || "nemo" in nome || "transducer" in nome -> ArchitetturaModello.NEMO_TRANSDUCER
+            else -> null
         }
     }
 

@@ -24,6 +24,13 @@
     <string name="azione_elimina">Elimina</string>
     <string name="azione_riprova">Riprova</string>
     <string name="azione_chiudi">Chiudi</string>
+    <string name="azione_annulla">Annulla</string>
+    <string name="azione_importa">Importa</string>
+    <string name="azione_indietro">Indietro</string>
+    <string name="azione_ok">OK</string>
+    <string name="azione_pagina">Pagina del modello</string>
+    <string name="azione_scarica">Scarica</string>
+    <string name="azione_usa">Usa questo</string>
     <string name="trascrizione_copiata">Trascrizione copiata</string>
 
     <!-- Stati di una trascrizione -->
@@ -38,8 +45,130 @@
     <string name="guida_tastiera_messaggio">Non sostituisce la tua tastiera: ci passi con il tasto di cambio tastiera mentre scrivi, inserisci una trascrizione e torni alla tastiera di sempre.</string>
     <string name="guida_tastiera_pulsante">Apri le impostazioni delle tastiere</string>
     <string name="guida_modello_titolo">Importa un modello</string>
-    <string name="guida_modello_messaggio">La trascrizione avviene sul telefono: scarica un modello Whisper con il browser e importalo qui.</string>
+    <string name="guida_modello_messaggio">La trascrizione avviene sul telefono: scarica un modello con il browser e importalo. La schermata dei modelli ti aiuta a sceglierlo.</string>
     <string name="guida_modello_pulsante">Gestisci i modelli</string>
+
+    <!-- Schermata dei modelli -->
+    <string name="modelli_test_prestazioni">Test delle prestazioni</string>
+    <string name="modelli_importa">Importa un modello</string>
+    <string name="modelli_filtro_titolo">Mostra i modelli per</string>
+    <string name="modelli_filtro_tutte">Tutte le lingue</string>
+    <string name="modelli_sezione_installati">Sul telefono</string>
+    <string name="modelli_nessuno_installato">Ancora nessun modello: scegline uno qui sotto, scaricalo con il browser e importalo con il pulsante Importa.</string>
+    <string name="modelli_nessuno_per_lingua">Nessun modello installato copre questa lingua.</string>
+    <string name="modelli_sezione_da_scaricare">Da scaricare</string>
+    <string name="modelli_da_scaricare_spiegazione">Scarica apre il file nel browser. Quando il download è finito, torna qui e tocca Importa.</string>
+    <string name="modelli_dispositivo">Il tuo telefono: %1$d GB di RAM, %2$d core. «Consigliato» indica il modello più adatto.</string>
+    <string name="modelli_tutti_scaricati">Hai già tutti i modelli del catalogo per questa lingua.</string>
+    <string name="download_avviato">Download nel browser: quando finisce, torna qui e tocca Importa.</string>
+    <string name="browser_assente">Nessuna app può aprire questo indirizzo.</string>
+
+    <!-- Lingua dei vocali -->
+    <string name="lingua_vocali_titolo">Lingua dei vocali</string>
+    <string name="lingua_vocali_automatica">Automatica</string>
+    <string name="lingua_vocali_automatica_dettaglio">Automatica: la riconosce il modello</string>
+    <string name="lingua_vocali_cambia">Cambia</string>
+    <string name="lingua_vocali_spiegazione">Vale per i modelli multilingue. Se i tuoi vocali sono quasi sempre nella stessa lingua, sceglierla evita che il modello la scambi per un\'altra; con «Automatica» il modello la riconosce vocale per vocale. I modelli specializzati usano sempre la loro lingua.</string>
+    <string name="lingua_arabo_marocchino">Arabo (anche marocchino)</string>
+
+    <!-- Schede dei modelli -->
+    <string name="modello_in_uso">In uso</string>
+    <string name="modello_consigliato">Consigliato</string>
+    <string name="modello_specializzato">Specializzato</string>
+    <string name="modello_importato">Importato da te</string>
+    <string name="modello_non_commerciale">Non commerciale</string>
+    <string name="modello_lingue">Lingue: %1$s</string>
+    <string name="lingue_tutte">tutte (multilingue)</string>
+    <string name="lingue_specializzato">%1$s (specializzato)</string>
+    <plurals name="lingue_e_altre">
+        <item quantity="one">%1$s e %2$d altra</item>
+        <item quantity="other">%1$s e altre %2$d</item>
+    </plurals>
+    <string name="modello_tipo">Tipo: %1$s</string>
+    <string name="modello_occupa">Occupa %1$s</string>
+    <string name="modello_non_verificato">Fuori catalogo: l\'app non ha potuto verificare il file.</string>
+    <string name="modello_qualita">Accuratezza %1$s · Velocità %2$s</string>
+    <string name="modello_peso">Download %1$s · RAM consigliata %2$s</string>
+    <string name="modello_file">File: %1$s · quantizzazione %2$s</string>
+    <string name="modello_licenza">Licenza: %1$s</string>
+    <string name="modello_licenza_nc">Licenza: %1$s, solo per uso non commerciale</string>
+    <string name="elimina_modello_titolo">Eliminare %1$s?</string>
+    <string name="elimina_modello_messaggio">Libera %1$s. Per usarlo di nuovo dovrai riscaricarlo e importarlo.</string>
+
+    <!-- Tipi di modello e file -->
+    <string name="architettura_ggml">Whisper (whisper.cpp)</string>
+    <string name="architettura_nemo_transducer">Parakeet, GigaAM e altri transducer NeMo (sherpa-onnx)</string>
+    <string name="architettura_zipformer">Transducer Zipformer (sherpa-onnx)</string>
+    <string name="architettura_nemo_ctc">NeMo CTC (sherpa-onnx)</string>
+    <string name="architettura_omnilingual">Omnilingual ASR di Meta (sherpa-onnx)</string>
+    <string name="architettura_moonshine">Moonshine (sherpa-onnx)</string>
+    <string name="architettura_sense_voice">SenseVoice (sherpa-onnx)</string>
+    <string name="architettura_whisper_onnx">Whisper ONNX (sherpa-onnx)</string>
+    <string name="archivi_nemo_transducer">Archivi …-nemo-parakeet-tdt-… o …-nemo-transducer-…: encoder, decoder e joiner.</string>
+    <string name="archivi_zipformer">Archivi …-zipformer-…: encoder, decoder e joiner.</string>
+    <string name="archivi_nemo_ctc">Archivi …-nemo-ctc-… o …-parakeet_tdt_ctc-…: un solo model.onnx.</string>
+    <string name="archivi_omnilingual">Archivi …-omnilingual-asr-…: un solo model.onnx.</string>
+    <string name="archivi_moonshine">Archivi …-moonshine-…: encoder e decoder.</string>
+    <string name="archivi_sense_voice">Archivi …-sense-voice-…: un solo model.onnx.</string>
+    <string name="archivi_whisper_onnx">Archivi …-whisper-…: encoder e decoder ONNX.</string>
+    <string name="file_ggml">un solo file ggml-….bin per whisper.cpp</string>
+    <string name="file_archivio">un archivio .tar.bz2 o .zip per sherpa-onnx</string>
+    <string name="formato_ggml_multilingue">modello Whisper multilingue (whisper.cpp)</string>
+    <string name="formato_ggml_inglese">modello Whisper solo inglese (whisper.cpp)</string>
+    <string name="formato_tar_bz2">archivio .tar.bz2</string>
+    <string name="formato_zip">archivio .zip</string>
+    <string name="formato_non_importabile">un formato che l\'app non importa</string>
+    <string name="formato_gguf">È un file GGUF, il formato dei modelli di testo di llama.cpp: whisper.cpp non lo legge. Per i modelli Whisper scarica il file ggml-….bin.</string>
+    <string name="formato_safetensors">Sono i pesi originali di un modello Hugging Face (.safetensors), che l\'app non legge. Cerca la versione già convertita: un file ggml-….bin o un archivio sherpa-onnx.</string>
+    <string name="formato_pytorch">Sono i pesi PyTorch originali (.pt o pytorch_model.bin), che l\'app non legge. Cerca la versione già convertita in ggml (ggml-….bin).</string>
+    <string name="formato_onnx_singolo">È un solo file ONNX, ma un modello sherpa-onnx è fatto di più file (encoder, decoder, tokens.txt…). Scarica l\'archivio completo .tar.bz2.</string>
+    <string name="formato_sconosciuto">Formato non riconosciuto. L\'app importa i file ggml-….bin di whisper.cpp e gli archivi .tar.bz2 o .zip di sherpa-onnx.</string>
+    <string name="formato_incompatibile">Il file non corrisponde al tipo di modello: serve %1$s.</string>
+    <string name="file_mancante">Nell\'archivio manca %1$s. Forse il tipo di modello scelto non è quello giusto, oppure l\'archivio è incompleto: controlla la pagina del modello.</string>
+    <string name="errore_import_sconosciuto">Errore sconosciuto durante l\'import.</string>
+
+    <!-- Import di un modello -->
+    <string name="import_analisi_titolo">Lettura del file</string>
+    <string name="import_analisi_messaggio">Copio il file nella memoria dell\'app e ne calcolo l\'impronta, per riconoscere il modello.</string>
+    <string name="import_installazione_titolo">Installazione</string>
+    <string name="import_installazione_archivio">Estraggo l\'archivio e controllo che ci siano tutti i file. Per i modelli grandi servono alcuni minuti.</string>
+    <string name="import_installazione_file">Salvo il modello.</string>
+    <string name="import_dati_titolo">Modello fuori catalogo</string>
+    <string name="import_dati_messaggio">Il file non è nel catalogo, quindi l\'app non può verificarlo: puoi usarlo lo stesso se viene da una fonte di cui ti fidi. Indica di che modello si tratta.</string>
+    <string name="import_file_info">File: %1$s (%2$s), riconosciuto come %3$s.</string>
+    <string name="import_nome">Nome</string>
+    <string name="import_tipo">Tipo di modello</string>
+    <string name="import_tipo_spiegazione">Lo dice il nome dell\'archivio o la pagina del modello. Se sbagli, l\'import si ferma e ti dice quale file manca.</string>
+    <string name="import_lingue">Lingue</string>
+    <string name="import_lingue_spiegazione">Nessuna selezionata: multilingue, per vocali in qualsiasi lingua. Una sola: specializzato, l\'app gli farà usare sempre quella lingua.</string>
+    <string name="import_solo_inglese">Il file è un modello solo inglese: l\'inglese è già selezionato.</string>
+    <string name="import_completato_titolo">Modello pronto</string>
+    <string name="import_completato_verificato">«%1$s» è installato e verificato, ed è il modello in uso.</string>
+    <string name="import_completato_personalizzato">«%1$s» è installato ed è il modello in uso.</string>
+    <string name="import_errore_titolo">Import non riuscito</string>
+
+    <!-- Guida alla scelta dei modelli -->
+    <string name="guida_titolo">Come scegliere e importare un modello</string>
+    <string name="guida_come_funziona_titolo">Come funziona</string>
+    <string name="guida_come_funziona">Tocca Scarica su un modello: il browser scarica il file. Poi torna qui, tocca Importa e scegli il file scaricato. L\'app non usa internet: riconosce i modelli del catalogo dall\'impronta del file e controlla ogni modello prima di usarlo.</string>
+    <string name="guida_specializzato_titolo">Specializzato o multilingue?</string>
+    <string name="guida_specializzato">Un modello specializzato conosce una sola lingua: in quella è spesso più accurato o più leggero, e l\'app gliela fa usare sempre. Un modello multilingue va bene per vocali in qualsiasi lingua: la riconosce da sé, oppure usa quella scelta in «Lingua dei vocali».</string>
+    <string name="guida_peso_titolo">Leggero o pesante?</string>
+    <string name="guida_peso">I modelli più grandi sbagliano meno, ma sono più lenti e usano più memoria. Comincia da quello consigliato; se una trascrizione non ti convince, prova un modello più grande.</string>
+    <string name="guida_whisper_titolo">Modelli Whisper: quale file</string>
+    <string name="guida_whisper">Serve un solo file ggml-….bin, il formato di whisper.cpp. La sigla finale indica la quantizzazione, cioè quanto il modello è compresso: q5_0 e q5_1 sono leggeri e quasi uguali all\'originale, i più adatti al telefono; q8_0 è più fedele e pesa quasi il doppio; f16 è l\'originale, pesante e lento. I modelli che finiscono in .en capiscono solo l\'inglese.</string>
+    <string name="guida_sherpa_titolo">Modelli sherpa-onnx: quale file</string>
+    <string name="guida_sherpa">Parakeet, GigaAM, Zipformer, Moonshine, SenseVoice e gli altri modelli di sherpa-onnx sono fatti di più file (encoder, decoder, tokens.txt): serve l\'archivio completo .tar.bz2 o .zip. Se ci sono due versioni, scegli quella int8: più leggera, con qualità quasi uguale.</string>
+    <string name="guida_formati_titolo">File che non funzionano</string>
+    <string name="guida_formati">I file .gguf (modelli di testo per llama.cpp), i pesi originali .safetensors e .pt (vanno prima convertiti) e un singolo file .onnx (serve l\'archivio con tutti i file).</string>
+    <string name="guida_marocchino_titolo">Marocchino (darija)</string>
+    <string name="guida_marocchino">I modelli lo trattano come arabo: scegli quelli per l\'arabo, oppure uno specializzato nel darija o nei dialetti arabi, se lo trovi.</string>
+    <string name="guida_cercare_titolo">Dove cercare altri modelli</string>
+    <string name="guida_cercare">Su Hugging Face cerca «whisper ggml» insieme alla lingua, per esempio «whisper ggml italian»: molti modelli specializzati hanno anche la versione ggml. Gli archivi di sherpa-onnx sono nelle release del progetto su GitHub, alla voce asr-models. Un modello fuori catalogo si importa lo stesso: l\'app ti chiede nome, lingue e tipo.</string>
+    <string name="guida_apri_hugging_face">Cerca su Hugging Face</string>
+    <string name="guida_apri_sherpa">Modelli sherpa-onnx</string>
+    <string name="guida_licenze_titolo">Licenze</string>
+    <string name="guida_licenze">I modelli segnati «Non commerciale» non si possono usare per scopi commerciali: controlla la licenza nella pagina del modello.</string>
 
     <!-- Tastiera di trascrizione -->
     <string name="tastiera_nome">PoldoKeyboard Trascrizioni</string>

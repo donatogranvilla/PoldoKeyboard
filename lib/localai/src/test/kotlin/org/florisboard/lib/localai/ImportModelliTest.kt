@@ -53,6 +53,26 @@ class ImportModelliTest {
         assertNull(RiconoscitoreFormato.intestazioneGgml(qualsiasi))
     }
 
+    /** Dal nome degli archivi ufficiali si propone l'architettura giusta. */
+    @Test
+    fun testArchitetturaDalNomeDellArchivio() {
+        val attese = mapOf(
+            "sherpa-onnx-nemo-parakeet-tdt-0.6b-v3-int8.tar.bz2" to ArchitetturaModello.NEMO_TRANSDUCER,
+            "sherpa-onnx-nemo-parakeet_tdt_ctc_110m-en-36000-int8.tar.bz2" to ArchitetturaModello.NEMO_CTC,
+            "sherpa-onnx-nemo-transducer-giga-am-v2-russian-2025-04-19.tar.bz2" to ArchitetturaModello.NEMO_TRANSDUCER,
+            "sherpa-onnx-omnilingual-asr-1600-languages-300M-ctc-int8-2025-11-12.tar.bz2" to ArchitetturaModello.OMNILINGUAL_CTC,
+            "sherpa-onnx-moonshine-base-en-int8.tar.bz2" to ArchitetturaModello.MOONSHINE,
+            "sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17.tar.bz2" to ArchitetturaModello.SENSE_VOICE,
+            "sherpa-onnx-whisper-small.tar.bz2" to ArchitetturaModello.WHISPER_ONNX,
+            "sherpa-onnx-zipformer-gigaspeech-2023-12-12.tar.bz2" to ArchitetturaModello.ZIPFORMER_TRANSDUCER,
+        )
+        for ((nome, architettura) in attese) {
+            assertEquals(architettura, RiconoscitoreFormato.architetturaProbabile(nome), nome)
+        }
+        assertNull(RiconoscitoreFormato.architetturaProbabile("modello.zip"))
+        assertNull(RiconoscitoreFormato.architetturaProbabile(null))
+    }
+
     /** Un archivio con una cartella principale viene estratto senza quella cartella. */
     @Test
     fun testEstrazioneToglieLaCartellaPrincipale() {
