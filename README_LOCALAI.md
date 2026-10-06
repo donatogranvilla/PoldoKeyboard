@@ -55,7 +55,7 @@ graph TD
 - Non si apre nessuna finestra: il vocale viene copiato nella memoria privata dell'app e messo in coda, un breve avviso lo conferma e resti nella chat.
 - [`ServizioTrascrizione`](app/src/main/kotlin/dev/patrickgold/florisboard/ime/voice/ServizioTrascrizione.kt) trascrive la coda in un processo separato (`:trascrizione`), con una notifica di avanzamento, anche a schermo spento. Se il motore esaurisce la memoria si chiude quel processo, non la tastiera.
 - La decodifica nativa `MediaExtractor` / `MediaCodec` converte direttamente il formato WhatsApp `.opus` (Ogg container) in campioni PCM a 16 kHz Mono senza librerie pesanti come FFmpeg.
-- Il testo comparirà nella scheda Trascrizioni della tastiera, che si aprirà da sola al ritorno nella chat (in sviluppo).
+- Il testo compare nella scheda Trascrizioni della tastiera, che si apre da sola al ritorno nella chat se c'è qualcosa di nuovo ([`AperturaAutomaticaTrascrizioni`](app/src/main/kotlin/dev/patrickgold/florisboard/ime/voice/AperturaAutomaticaTrascrizioni.kt)), ma non a telefono bloccato né se hai già aperto emoji o appunti.
 
 ### 2. Scheda Trascrizioni nella tastiera
 - Si apre con l'azione **Trascrivi** della Smartbar (`VoiceTranscriptionLayout`). Il tasto voce resta quello di FlorisBoard e passa alla tastiera vocale di sistema.

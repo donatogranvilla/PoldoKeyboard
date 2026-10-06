@@ -54,6 +54,7 @@ import dev.patrickgold.florisboard.ime.lifecycle.LifecycleInputMethodService
 import dev.patrickgold.florisboard.ime.nlp.NlpInlineAutofill
 import dev.patrickgold.florisboard.ime.smartbar.createInlineSuggestionUiStyleBundle
 import dev.patrickgold.florisboard.ime.theme.WallpaperChangeReceiver
+import dev.patrickgold.florisboard.ime.voice.AperturaAutomaticaTrascrizioni
 import dev.patrickgold.florisboard.ime.window.ImeRootView
 import dev.patrickgold.florisboard.ime.window.ImeWindowController
 import dev.patrickgold.florisboard.lib.devtools.LogTopic
@@ -412,6 +413,8 @@ class FlorisImeService : LifecycleInputMethodService() {
         super.onWindowShown()
         if (windowController.onWindowShown()) {
             flogInfo(LogTopic.IMS_EVENTS)
+            // PoldoKeyboard: al rientro nella chat apre la scheda Trascrizioni, se ci sono novità
+            AperturaAutomaticaTrascrizioni.alRientro(this, lifecycleScope, imeController)
         } else {
             flogWarning(LogTopic.IMS_EVENTS) { "Ignoring (is already shown)" }
         }
