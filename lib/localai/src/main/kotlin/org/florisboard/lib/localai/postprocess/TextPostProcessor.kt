@@ -71,7 +71,8 @@ object TextPostProcessor {
         while (i < parole.size) {
             var lunghezzaMigliore = 1
             var ripetizioniMigliori = 1
-            for (n in 1..MAX_PAROLE_RIPETIZIONE) {
+            // Verso la fine del testo restano meno parole delle frasi più lunghe da provare
+            for (n in 1..minOf(MAX_PAROLE_RIPETIZIONE, parole.size - i)) {
                 var ripetizioni = 1
                 while (i + (ripetizioni + 1) * n <= parole.size &&
                     (0 until n).all { normalizzate[i + it] == normalizzate[i + ripetizioni * n + it] }
