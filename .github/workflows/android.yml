@@ -41,6 +41,9 @@ jobs:
             unzip -Z1 "$apk" | grep -Fxq "lib/arm64-v8a/lib$lib.so" || { echo "Manca lib$lib.so nell'APK"; exit 1; }
           done
           unzip -Z1 "$apk" | grep -Fxq "assets/vad/ggml-silero-v6.2.0.bin" || { echo "Manca il modello del VAD nell'APK"; exit 1; }
+          # Librerie con i simboli di debug: il passo di strip non ha trovato la NDK e l'APK cresce di 10 MB
+          unzip -p "$apk" lib/arm64-v8a/libwhisper.so > /tmp/libwhisper.so
+          if readelf -S /tmp/libwhisper.so | grep -q '.debug_info'; then echo "Librerie native con i simboli di debug"; exit 1; fi
       - uses: actions/upload-artifact@v4
         with:
           name: app-debug.apk

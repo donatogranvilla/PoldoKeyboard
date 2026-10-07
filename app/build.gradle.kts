@@ -16,6 +16,9 @@ kotlin {
 configure<ApplicationExtension> {
     namespace = "io.github.donatogranvilla.poldokeyboard"
     compileSdk = providers.gradleProperty("projectCompileSdk").get().toInt()
+    // La stessa NDK di :lib:localai: senza, il passo che toglie i simboli di debug dalle librerie native usa la
+    // versione predefinita del plugin Android e, se la macchina non ce l'ha, le impacchetta intere (+10 MB)
+    ndkVersion = providers.gradleProperty("poldo.ndkVersion").getOrElse(tools.versions.ndk.get())
     buildToolsVersion = tools.versions.buildTools.get()
 
     defaultConfig {
