@@ -5,6 +5,7 @@
 
 #include <mutex>
 #include <string>
+#include <vector>
 
 #include "ggml-backend.h"
 #include "whisper.h"
@@ -151,6 +152,79 @@ Java_org_florisboard_lib_localai_whisper_WhisperNative_rilevaLingua(
     const int idLingua = whisper_lang_auto_detect(contesto, 0, thread, nullptr);
     const char * codice = idLingua >= 0 ? whisper_lang_str(idLingua) : nullptr;
     return codice != nullptr ? env->NewStringUTF(codice) : nullptr;
+}
+
+/**
+ * Carica il modello Silero del rilevatore di parlato (VAD) dal file indicato.
+ * @return Il puntatore al contesto del VAD, o 0 se il file non è valido o manca il backend CPU.
+ */
+extern "C" JNIEXPORT jlong JNICALL
+Java_org_florisboard_lib_localai_whisper_WhisperNative_initVad(
+        JNIEnv * env, jobject /* thiz */, jstring percorsoModello) {
+    if (caricaBackendCpu() == nullptr) {
+        return 0;
+    }
+    const char * percorso = env->GetStringUTFChars(percorsoModello, nullptr);
+    whisper_vad_context_params parametri = whisper_vad_default_context_params();
+    // La rete è minuscola e ricorrente: un thread basta e lascia liberi gli altri
+    parametri.n_threads = 1;
+    parametri.use_gpu = false;
+    whisper_vad_context * contesto = whisper_vad_init_from_file_with_params(percorso, parametri);
+    env->ReleaseStringUTFChars(percorsoModello, percorso);
+    return reinterpret_cast<jlong>(contesto);
+}
+
+/**
+ * Libera la memoria del VAD.
+ */
+extern "C" JNIEXPORT void JNICALL
+Java_org_florisboard_lib_localai_whisper_WhisperNative_freeVad(
+        JNIEnv * /* env */, jobject /* thiz */, jlong handle) {
+    whisper_vad_free(reinterpret_cast<whisper_vad_context *>(handle));
+}
+
+/**
+ * Trova i tratti di parlato nell'audio a 16 kHz mono, già allargati del margine richiesto.
+ * @return Inizio e fine di ogni tratto in secondi, in coppie consecutive; vuoto se non c'è parlato,
+ *   null se il rilevamento non riesce.
+ */
+extern "C" JNIEXPORT jfloatArray JNICALL
+Java_org_florisboard_lib_localai_whisper_WhisperNative_trovaParlato(
+        JNIEnv * env, jobject /* thiz */, jlong handle, jfloatArray campioni, jfloat soglia,
+        jint parlatoMinimoMs, jint silenzioMinimoMs, jfloat parlatoMassimoS, jint margineMs) {
+    auto * contesto = reinterpret_cast<whisper_vad_context *>(handle);
+    if (contesto == nullptr) {
+        return nullptr;
+    }
+    whisper_vad_params parametri = whisper_vad_default_params();
+    parametri.threshold = soglia;
+    parametri.min_speech_duration_ms = parlatoMinimoMs;
+    parametri.min_silence_duration_ms = silenzioMinimoMs;
+    parametri.max_speech_duration_s = parlatoMassimoS;
+    parametri.speech_pad_ms = margineMs;
+
+    const jsize numeroCampioni = env->GetArrayLength(campioni);
+    jfloat * dati = env->GetFloatArrayElements(campioni, nullptr);
+    whisper_vad_segments * tratti = whisper_vad_segments_from_samples(contesto, parametri, dati, numeroCampioni);
+    env->ReleaseFloatArrayElements(campioni, dati, JNI_ABORT);
+    if (tratti == nullptr) {
+        return nullptr;
+    }
+
+    const int numeroTratti = whisper_vad_segments_n_segments(tratti);
+    std::vector<jfloat> secondi(2 * numeroTratti);
+    for (int i = 0; i < numeroTratti; i++) {
+        // whisper.cpp li dà in centesimi di secondo
+        secondi[2 * i] = whisper_vad_segments_get_segment_t0(tratti, i) / 100.0f;
+        secondi[2 * i + 1] = whisper_vad_segments_get_segment_t1(tratti, i) / 100.0f;
+    }
+    whisper_vad_free_segments(tratti);
+
+    jfloatArray risultato = env->NewFloatArray(static_cast<jsize>(secondi.size()));
+    if (risultato != nullptr && !secondi.empty()) {
+        env->SetFloatArrayRegion(risultato, 0, static_cast<jsize>(secondi.size()), secondi.data());
+    }
+    return risultato;
 }
 
 /**

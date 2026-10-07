@@ -18,6 +18,7 @@ In accordance with project requirements, every dependency is audited to ensure c
 | **ONNX Runtime** | [microsoft/onnxruntime](https://github.com/microsoft/onnxruntime) | bundled in sherpa-onnx 1.13.8 | MIT | **Yes** | Yes | Statically linked inside `libsherpa-onnx-jni.so`. |
 | **Apache Commons Compress** | [apache/commons-compress](https://github.com/apache/commons-compress) | 1.27.1 | Apache-2.0 | **Yes** | Yes | Extracts the .tar.bz2 archives of sherpa-onnx models. |
 | **kotlinx.serialization** | JetBrains | 1.11.0 | Apache-2.0 | **Yes** | Yes | Reads the model catalog and the data of imported models. |
+| **Silero VAD** | [snakers4/silero-vad](https://github.com/snakers4/silero-vad) | v6.2.0 | MIT | **Yes** | Yes | Speech detector run by whisper.cpp before every transcription. `lib/localai/src/main/assets/vad/ggml-silero-v6.2.0.bin` (885 098 bytes, SHA-256 `2aa269b785eeb53a82983a20501ddf7c1d9c48e33ab63a41391ac6c9f7fb6987`) is the ggml conversion shipped unmodified in the whisper.cpp submodule as `models/for-tests-silero-v6.2.0-ggml.bin`. The only model bundled in the app. |
 
 ---
 

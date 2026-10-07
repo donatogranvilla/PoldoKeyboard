@@ -30,6 +30,24 @@ object WhisperNative {
     /** La lingua parlata nei primi 30 s dei campioni, come "it"; null per i modelli solo inglese o se fallisce. */
     external fun rilevaLingua(contextHandle: Long, samples: FloatArray, threads: Int): String?
 
+    /** Carica il modello Silero del rilevatore di parlato; 0 se non riesce. */
+    external fun initVad(modelPath: String): Long
+    external fun freeVad(vadHandle: Long)
+
+    /**
+     * I tratti di parlato nei campioni a 16 kHz, già allargati di [margineMs] per lato, come coppie
+     * consecutive di inizio e fine in secondi; vuoto se non c'è parlato, null se il rilevamento non riesce.
+     */
+    external fun trovaParlato(
+        vadHandle: Long,
+        samples: FloatArray,
+        soglia: Float,
+        parlatoMinimoMs: Int,
+        silenzioMinimoMs: Int,
+        parlatoMassimoS: Float,
+        margineMs: Int,
+    ): FloatArray?
+
     external fun fullTranscribe(
         contextHandle: Long,
         samples: FloatArray,

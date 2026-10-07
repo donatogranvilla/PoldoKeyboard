@@ -30,7 +30,7 @@ jobs:
         run: ./gradlew clean assembleDebug
       # Le varianti del backend CPU si caricano a runtime: se una manca il motore non parte su quei processori,
       # quindi la run si ferma prima di pubblicare l'APK
-      - name: Check native libraries
+      - name: Check native libraries and VAD model
         run: |
           apk=app/build/outputs/apk/debug/app-debug.apk
           unzip -l "$apk" 'lib/arm64-v8a/*'
@@ -40,6 +40,7 @@ jobs:
               ggml-cpu-android_armv9.2_2 sherpa-onnx-jni; do
             unzip -Z1 "$apk" | grep -Fxq "lib/arm64-v8a/lib$lib.so" || { echo "Manca lib$lib.so nell'APK"; exit 1; }
           done
+          unzip -Z1 "$apk" | grep -Fxq "assets/vad/ggml-silero-v6.2.0.bin" || { echo "Manca il modello del VAD nell'APK"; exit 1; }
       - uses: actions/upload-artifact@v4
         with:
           name: app-debug.apk
