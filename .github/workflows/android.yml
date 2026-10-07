@@ -45,6 +45,7 @@ jobs:
           name: app-debug.apk
           path: app/build/outputs/apk/debug/app-debug.apk
       # Dopo il caricamento dell'APK e senza bloccare la run: un test che fallisce non deve togliere l'APK da provare
+      # --continue: i test di ogni modulo girano anche se quelli di un altro falliscono
       - name: Unit tests
         continue-on-error: true
-        run: ./gradlew testDebugUnitTest
+        run: ./gradlew testDebugUnitTest --continue
