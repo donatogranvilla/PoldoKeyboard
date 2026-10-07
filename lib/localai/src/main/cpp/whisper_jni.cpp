@@ -131,6 +131,29 @@ Java_org_florisboard_lib_localai_whisper_WhisperNative_freeContext(
 }
 
 /**
+ * Riconosce la lingua parlata nei primi 30 s dell'audio indicato.
+ * @return Il codice della lingua, come "it", o null se il modello è solo inglese o il riconoscimento fallisce.
+ */
+extern "C" JNIEXPORT jstring JNICALL
+Java_org_florisboard_lib_localai_whisper_WhisperNative_rilevaLingua(
+        JNIEnv * env, jobject /* thiz */, jlong handle, jfloatArray campioni, jint thread) {
+    auto * contesto = reinterpret_cast<whisper_context *>(handle);
+    if (contesto == nullptr || !whisper_is_multilingual(contesto)) {
+        return nullptr;
+    }
+    const jsize numeroCampioni = env->GetArrayLength(campioni);
+    jfloat * dati = env->GetFloatArrayElements(campioni, nullptr);
+    const int esitoMel = whisper_pcm_to_mel(contesto, dati, numeroCampioni, thread);
+    env->ReleaseFloatArrayElements(campioni, dati, JNI_ABORT);
+    if (esitoMel != 0) {
+        return nullptr;
+    }
+    const int idLingua = whisper_lang_auto_detect(contesto, 0, thread, nullptr);
+    const char * codice = idLingua >= 0 ? whisper_lang_str(idLingua) : nullptr;
+    return codice != nullptr ? env->NewStringUTF(codice) : nullptr;
+}
+
+/**
  * Trascrive un segmento di audio a 16 kHz mono.
  * @return Il testo trascritto, o null se whisper.cpp non è riuscito a elaborare l'audio.
  */
@@ -146,6 +169,9 @@ Java_org_florisboard_lib_localai_whisper_WhisperNative_fullTranscribe(
     // Qualità prima della velocità: ricerca a fascio con 5 ipotesi, come la riga di comando di whisper.cpp
     whisper_full_params parametri = whisper_full_default_params(WHISPER_SAMPLING_BEAM_SEARCH);
     parametri.beam_search.beam_size = 5;
+    // Quando una finestra fallisce, whisper.cpp la ritenta a temperature più alte con greedy.best_of campioni,
+    // che con la beam search predefinita vale -1, cioè uno solo: come OpenAI e la CLI se ne tengono 5
+    parametri.greedy.best_of = 5;
     parametri.n_threads = thread;
     parametri.translate = traduci == JNI_TRUE;
     parametri.no_context = true;

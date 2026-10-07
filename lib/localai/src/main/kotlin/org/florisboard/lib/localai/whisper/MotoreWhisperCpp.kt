@@ -67,6 +67,15 @@ class MotoreWhisperCpp : MotoreTrascrizione {
         val segmentiTrascritte = mutableListOf<SegmentoTrascritto>()
         val builder = StringBuilder()
 
+        // Con la lingua automatica whisper.cpp la stimerebbe segmento per segmento, anche sulle code di pochi
+        // secondi dove sbaglia di più: la si stima una volta sul segmento più lungo e la si usa per tutti
+        val lingua = opzioni.lingua ?: if (segmenti.size > 1) {
+            val piuLungo = segmenti.maxBy { it.campioniAudio.size }
+            WhisperNative.rilevaLingua(handleContesto, piuLungo.campioniAudio, opzioni.numThread)
+        } else {
+            null
+        }
+
         for ((idx, seg) in segmenti.withIndex()) {
             val baseProgresso = idx.toFloat() / numSegmenti
             val pesoProgresso = 1.0f / numSegmenti
@@ -75,13 +84,13 @@ class MotoreWhisperCpp : MotoreTrascrizione {
             val chunkGrezzo: String = WhisperNative.fullTranscribe(
                 contextHandle = handleContesto,
                 samples = seg.campioniAudio,
-                language = opzioni.lingua,
+                language = lingua,
                 threads = opzioni.numThread,
                 translate = opzioni.traduciInInglese
             ) ?: ""
 
             val chunkProcessato = if (opzioni.formattaPunteggiatura) {
-                TextPostProcessor.process(chunkGrezzo, opzioni.lingua)
+                TextPostProcessor.process(chunkGrezzo, lingua)
             } else {
                 chunkGrezzo.trim()
             }
@@ -109,7 +118,7 @@ class MotoreWhisperCpp : MotoreTrascrizione {
 
         RisultatoTrascrizione(
             testo = testoFinale,
-            linguaRilevata = opzioni.lingua ?: "it",
+            linguaRilevata = lingua,
             durataAudioMs = durataAudioMs,
             tempoInferenzaMs = tempoInferenzaMs,
             segmenti = segmentiTrascritte

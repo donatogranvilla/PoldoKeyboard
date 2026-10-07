@@ -26,6 +26,10 @@ object WhisperNative {
 
     external fun initContext(modelPath: String): Long
     external fun freeContext(contextHandle: Long)
+
+    /** La lingua parlata nei primi 30 s dei campioni, come "it"; null per i modelli solo inglese o se fallisce. */
+    external fun rilevaLingua(contextHandle: Long, samples: FloatArray, threads: Int): String?
+
     external fun fullTranscribe(
         contextHandle: Long,
         samples: FloatArray,
