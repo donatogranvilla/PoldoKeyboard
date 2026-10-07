@@ -90,7 +90,7 @@ class MotoreWhisperCpp : MotoreTrascrizione {
             ) ?: ""
 
             val chunkProcessato = if (opzioni.formattaPunteggiatura) {
-                TextPostProcessor.process(chunkGrezzo, lingua)
+                TextPostProcessor.process(chunkGrezzo, lingua, TextPostProcessor.continuaFrase(builder))
             } else {
                 chunkGrezzo.trim()
             }

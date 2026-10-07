@@ -72,6 +72,21 @@ class TextPostProcessorTest {
         )
     }
 
+    /** Un pezzo che continua la frase del precedente non inizia con la maiuscola, tranne le sigle. */
+    @Test
+    fun testPezzoCheContinuaLaFrase() {
+        assertEquals(true, TextPostProcessor.continuaFrase("piuttosto che stare a casa"))
+        assertEquals(false, TextPostProcessor.continuaFrase("Ci vediamo domani. "))
+        assertEquals(false, TextPostProcessor.continuaFrase(""))
+        assertEquals(
+            "siccome la palestra è chiusa. Vengo anch'io",
+            TextPostProcessor.process("Siccome la palestra è chiusa. vengo anch'io", "it", continuaFrase = true),
+        )
+        assertEquals("e poi ti dico", TextPostProcessor.process("E poi ti dico", "it", continuaFrase = true))
+        assertEquals("USA domani", TextPostProcessor.process("USA domani", "it", continuaFrase = true))
+        assertEquals("Siccome piove", TextPostProcessor.process("Siccome piove", "it"))
+    }
+
     @Test
     fun testPreservesMeaningWithoutInventingContent() {
         val input = "ci vediamo alle venti e trenta"

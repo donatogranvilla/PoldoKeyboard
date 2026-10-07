@@ -31,8 +31,9 @@ object TextPostProcessor {
      *
      * @param rawText Raw output from speech recognition engine
      * @param languageCode ISO language code (e.g. "it", "fr", "es", "en")
+     * @param continuaFrase true se il testo segue un pezzo che non chiude la frase: allora non inizia con la maiuscola
      */
-    fun process(rawText: String, languageCode: String? = null): String {
+    fun process(rawText: String, languageCode: String? = null, continuaFrase: Boolean = false): String {
         var text = rawText.trim()
         if (text.isEmpty()) return ""
 
@@ -53,10 +54,21 @@ object TextPostProcessor {
         text = text.replace(Regex("""([,.:;?!])([^\s0-9,.:;?!])"""), "$1 $2")
 
         // 5. Capitalize first letter of each sentence
-        text = capitalizeSentences(text, languageCode)
+        text = capitalizeSentences(text, languageCode, continuaFrase)
 
         return text
     }
+
+    /**
+     * true se il testo trascritto finora non chiude la frase, quindi il pezzo successivo la continua.
+     * Un testo vuoto non ha frasi da continuare.
+     */
+    fun continuaFrase(testoPrecedente: CharSequence): Boolean {
+        val ultimo = testoPrecedente.lastOrNull { !it.isWhitespace() } ?: return false
+        return ultimo !in FINE_FRASE
+    }
+
+    private const val FINE_FRASE = ".!?…"
 
     /**
      * Riduce a una sola occorrenza le parole e le frasi fino a [MAX_PAROLE_RIPETIZIONE] parole ripetute di
@@ -93,12 +105,22 @@ object TextPostProcessor {
         return risultato.joinToString(" ")
     }
 
-    private fun capitalizeSentences(text: String, languageCode: String?): String {
+    private fun capitalizeSentences(text: String, languageCode: String?, continuaFrase: Boolean): String {
         val locale = if (!languageCode.isNullOrBlank()) Locale.forLanguageTag(languageCode) else Locale.getDefault()
         val sb = StringBuilder()
-        var capitalizeNext = true
+        var capitalizeNext = !continuaFrase
+        // Whisper inizia ogni pezzo con la maiuscola: a metà frase la si toglie, tranne nelle sigle come "USA"
+        // e nella "I" inglese. I nomi propri non si distinguono e perdono la maiuscola anche loro
+        val primaParola = text.takeWhile { !it.isWhitespace() }.filter { it.isLetter() }
+        var minuscolaIniziale = continuaFrase && primaParola.isNotEmpty() && primaParola != "I" &&
+            primaParola.drop(1).all { it.isLowerCase() }
 
         for (ch in text) {
+            if (minuscolaIniziale && ch.isLetter()) {
+                sb.append(ch.lowercase(locale))
+                minuscolaIniziale = false
+                continue
+            }
             if (capitalizeNext && ch.isLetter()) {
                 sb.append(ch.uppercase(locale))
                 capitalizeNext = false

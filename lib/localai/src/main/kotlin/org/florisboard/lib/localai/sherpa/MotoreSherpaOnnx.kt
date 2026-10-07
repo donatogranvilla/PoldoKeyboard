@@ -87,7 +87,7 @@ class MotoreSherpaOnnx : MotoreTrascrizione {
             if (linguaRilevata == null && risultato.lang.isNotBlank()) linguaRilevata = risultato.lang
 
             val pezzo = if (opzioni.formattaPunteggiatura) {
-                TextPostProcessor.process(risultato.text, opzioni.lingua)
+                TextPostProcessor.process(risultato.text, opzioni.lingua, TextPostProcessor.continuaFrase(testo))
             } else {
                 risultato.text.trim()
             }
