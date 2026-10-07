@@ -1,6 +1,10 @@
 package org.florisboard.lib.localai.audio
 
+import kotlin.math.PI
+import kotlin.math.ceil
+import kotlin.math.cos
 import kotlin.math.floor
+import kotlin.math.sin
 
 /**
  * Resamples and downmixes raw audio to 16,000 Hz Mono PCM FloatArray
@@ -46,6 +50,9 @@ object AudioResampler {
             return monoSamples
         }
 
+        // Scendendo di frequenza, quello che sta sopra gli 8 kHz va tolto prima: altrimenti si ripiega
+        // nella banda che il modello analizza. Salendo non c'è nulla da togliere.
+        val filtro = if (sourceSampleRate > TARGET_SAMPLE_RATE) filtroAntiAliasing(sourceSampleRate) else null
         val ratio = sourceSampleRate.toDouble() / TARGET_SAMPLE_RATE.toDouble()
         val targetLength = floor(monoSamples.size / ratio).toInt()
         val output = FloatArray(targetLength)
@@ -56,14 +63,61 @@ object AudioResampler {
             val indexCeil = (indexFloor + 1).coerceAtMost(monoSamples.size - 1)
             val fraction = (srcIndex - indexFloor).toFloat()
 
-            // Linear interpolation
-            val s0 = monoSamples[indexFloor]
-            val s1 = monoSamples[indexCeil]
+            val s0 = campioneFiltrato(monoSamples, indexFloor, filtro)
+            // Con rapporti interi, come 48 → 16 kHz, la frazione è sempre zero: basta un campione filtrato
+            if (fraction == 0f) {
+                output[i] = s0
+                continue
+            }
+            val s1 = campioneFiltrato(monoSamples, indexCeil, filtro)
             output[i] = s0 + fraction * (s1 - s0)
         }
 
         return output
     }
+
+    /**
+     * Il filtro passa-basso FIR che precede la decimazione: sinc con finestra di Blackman, taglio a [TAGLIO_HZ]
+     * e guadagno unitario in continua. La lunghezza cresce con il rapporto, per tenere la banda di transizione
+     * sotto i 2 kHz.
+     */
+    internal fun filtroAntiAliasing(sourceSampleRate: Int): FloatArray {
+        val rapporto = sourceSampleRate.toDouble() / TARGET_SAMPLE_RATE
+        var lunghezza = ceil(rapporto * COEFFICIENTI_PER_RAPPORTO).toInt()
+        if (lunghezza % 2 == 0) lunghezza++
+        val centro = (lunghezza - 1) / 2
+        val taglio = TAGLIO_HZ / sourceSampleRate
+        val coefficienti = DoubleArray(lunghezza) { k ->
+            val x = (k - centro).toDouble()
+            val sinc = if (x == 0.0) 2 * taglio else sin(2 * PI * taglio * x) / (PI * x)
+            val finestra = 0.42 - 0.5 * cos(2 * PI * k / (lunghezza - 1)) + 0.08 * cos(4 * PI * k / (lunghezza - 1))
+            sinc * finestra
+        }
+        val somma = coefficienti.sum()
+        return FloatArray(lunghezza) { (coefficienti[it] / somma).toFloat() }
+    }
+
+    /**
+     * Il campione in posizione [indice] dopo il filtro, o quello originale se il filtro non serve.
+     * Ai bordi si ripete il primo o l'ultimo campione, così un segnale costante resta invariato.
+     */
+    private fun campioneFiltrato(campioni: FloatArray, indice: Int, filtro: FloatArray?): Float {
+        if (filtro == null) return campioni[indice]
+        val centro = filtro.size / 2
+        val ultimo = campioni.size - 1
+        var somma = 0f
+        for (k in filtro.indices) {
+            val j = (indice + k - centro).coerceIn(0, ultimo)
+            somma += filtro[k] * campioni[j]
+        }
+        return somma
+    }
+
+    /** Frequenza di taglio del filtro anti-aliasing: sotto gli 8 kHz di Nyquist a 16 kHz, con margine. */
+    private const val TAGLIO_HZ = 7400.0
+
+    /** Coefficienti del filtro per ogni unità del rapporto di decimazione: 145 per 48 → 16 kHz. */
+    private const val COEFFICIENTI_PER_RAPPORTO = 48
 
     /**
      * Converts a 16-bit signed integer PCM byte buffer into normalized floats (-1.0f to 1.0f).
