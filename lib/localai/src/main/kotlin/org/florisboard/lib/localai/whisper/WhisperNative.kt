@@ -4,18 +4,25 @@ package org.florisboard.lib.localai.whisper
  * JNI bridge declarations for whisper.cpp C/C++ core.
  */
 object WhisperNative {
-    private var isNativeLoaded = false
+    /**
+     * La variante del backend CPU caricata, adatta alle istruzioni del processore, come
+     * "libggml-cpu-android_armv8.2_2.so"; null se la libreria nativa non c'è o nessuna variante si può usare.
+     */
+    val varianteCpu: String?
 
     init {
-        try {
+        varianteCpu = try {
             System.loadLibrary("whisper_jni")
-            isNativeLoaded = true
+            caricaVarianteCpu()
         } catch (_: UnsatisfiedLinkError) {
-            isNativeLoaded = false
+            null
         }
     }
 
-    val isAvailable: Boolean get() = isNativeLoaded
+    /** true se la libreria nativa e una variante del backend CPU adatta al telefono sono caricate. */
+    val isAvailable: Boolean get() = varianteCpu != null
+
+    private external fun caricaVarianteCpu(): String?
 
     external fun initContext(modelPath: String): Long
     external fun freeContext(contextHandle: Long)

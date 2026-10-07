@@ -3,13 +3,32 @@
 #include <jni.h>
 #include <android/log.h>
 
+#include <mutex>
 #include <string>
 
+#include "ggml-backend.h"
 #include "whisper.h"
 
 namespace {
 
 constexpr const char * TAG = "PoldoWhisper";
+
+/**
+ * Le varianti del backend CPU di ggml, dalla più ricca di istruzioni alla più semplice. Il nome indica la prima
+ * versione di ARM che le offre: armv8.2_2 usa dotprod e fp16, armv8.6_1 aggiunge i8mm, le armv9 SVE2 e SME.
+ */
+constexpr const char * VARIANTI_CPU[] = {
+    "libggml-cpu-android_armv9.2_2.so",
+    "libggml-cpu-android_armv9.2_1.so",
+    "libggml-cpu-android_armv9.0_1.so",
+    "libggml-cpu-android_armv8.6_1.so",
+    "libggml-cpu-android_armv8.2_2.so",
+    "libggml-cpu-android_armv8.2_1.so",
+    "libggml-cpu-android_armv8.0_1.so",
+};
+
+std::once_flag caricamentoCpu;
+const char * varianteCpu = nullptr;
 
 /**
  * Inoltra a logcat i messaggi di whisper.cpp e ggml, che altrimenti finirebbero su stderr e andrebbero persi.
@@ -23,6 +42,30 @@ void scriviLog(enum ggml_log_level livello, const char * testo, void * /* datiUt
         default: break;
     }
     __android_log_write(priorita, TAG, testo);
+}
+
+/**
+ * Carica, una volta sola, la variante del backend CPU più veloce tra quelle che il processore supporta.
+ * ggml_backend_load scarta da sé le varianti con istruzioni che il processore non ha, controllandole con codice
+ * compilato senza quelle istruzioni: basta provarle in ordine e fermarsi alla prima che si carica.
+ * @return Il nome della variante caricata, o nullptr se nessuna si può usare.
+ */
+const char * caricaBackendCpu() {
+    std::call_once(caricamentoCpu, [] {
+        whisper_log_set(scriviLog, nullptr);
+        for (const char * variante : VARIANTI_CPU) {
+            if (ggml_backend_load(variante) != nullptr) {
+                varianteCpu = variante;
+                break;
+            }
+        }
+        if (varianteCpu != nullptr) {
+            __android_log_print(ANDROID_LOG_INFO, TAG, "Backend CPU: %s", varianteCpu);
+        } else {
+            __android_log_write(ANDROID_LOG_ERROR, TAG, "Nessuna variante del backend CPU si può caricare");
+        }
+    });
+    return varianteCpu;
 }
 
 /**
@@ -46,13 +89,27 @@ jstring nuovaStringaUtf8(JNIEnv * env, const std::string & testo) {
 } // namespace
 
 /**
+ * Carica la variante del backend CPU adatta al processore.
+ * @return Il nome della libreria caricata, come "libggml-cpu-android_armv8.2_2.so", o null se nessuna si può usare.
+ */
+extern "C" JNIEXPORT jstring JNICALL
+Java_org_florisboard_lib_localai_whisper_WhisperNative_caricaVarianteCpu(
+        JNIEnv * env, jobject /* thiz */) {
+    const char * variante = caricaBackendCpu();
+    return variante != nullptr ? env->NewStringUTF(variante) : nullptr;
+}
+
+/**
  * Carica il modello dal file indicato.
- * @return Il puntatore al contesto di whisper.cpp, o 0 se il file non è un modello valido.
+ * @return Il puntatore al contesto di whisper.cpp, o 0 se il file non è un modello valido o manca il backend CPU.
  */
 extern "C" JNIEXPORT jlong JNICALL
 Java_org_florisboard_lib_localai_whisper_WhisperNative_initContext(
         JNIEnv * env, jobject /* thiz */, jstring percorsoModello) {
     whisper_log_set(scriviLog, nullptr);
+    if (caricaBackendCpu() == nullptr) {
+        return 0;
+    }
 
     const char * percorso = env->GetStringUTFChars(percorsoModello, nullptr);
     whisper_context_params parametri = whisper_context_default_params();

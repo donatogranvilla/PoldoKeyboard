@@ -45,12 +45,27 @@ configure<LibraryExtension> {
 
         externalNativeBuild {
             cmake {
-                targets("whisper_jni")
+                // La libreria JNI con le sue dipendenze, e le varianti del backend CPU che whisper_jni carica
+                // a runtime: nessuna libreria le richiede, quindi vanno elencate perché finiscano nell'APK
+                targets(
+                    "whisper_jni",
+                    "whisper",
+                    "ggml",
+                    "ggml-base",
+                    "ggml-cpu-android_armv8.0_1",
+                    "ggml-cpu-android_armv8.2_1",
+                    "ggml-cpu-android_armv8.2_2",
+                    "ggml-cpu-android_armv8.6_1",
+                    "ggml-cpu-android_armv9.0_1",
+                    "ggml-cpu-android_armv9.2_1",
+                    "ggml-cpu-android_armv9.2_2",
+                )
             }
         }
 
         ndk {
-            // whisper.cpp solo per i telefoni a 64 bit: altrove il motore risulta non disponibile
+            // Solo i telefoni a 64 bit, cioè quasi tutti quelli in uso: altrove il motore risulta non disponibile.
+            // Dentro arm64-v8a le varianti del backend CPU coprono tutti i processori, da ARMv8.0 ad ARMv9.2
             abiFilters += "arm64-v8a"
         }
     }

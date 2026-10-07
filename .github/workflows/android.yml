@@ -28,6 +28,18 @@ jobs:
         uses: lukka/get-cmake@v4.0.2
       - name: Build with Gradle
         run: ./gradlew clean assembleDebug
+      # Le varianti del backend CPU si caricano a runtime: se una manca il motore non parte su quei processori,
+      # quindi la run si ferma prima di pubblicare l'APK
+      - name: Check native libraries
+        run: |
+          apk=app/build/outputs/apk/debug/app-debug.apk
+          unzip -l "$apk" 'lib/arm64-v8a/*'
+          for lib in whisper_jni whisper ggml ggml-base \
+              ggml-cpu-android_armv8.0_1 ggml-cpu-android_armv8.2_1 ggml-cpu-android_armv8.2_2 \
+              ggml-cpu-android_armv8.6_1 ggml-cpu-android_armv9.0_1 ggml-cpu-android_armv9.2_1 \
+              ggml-cpu-android_armv9.2_2 sherpa-onnx-jni; do
+            unzip -Z1 "$apk" | grep -Fxq "lib/arm64-v8a/lib$lib.so" || { echo "Manca lib$lib.so nell'APK"; exit 1; }
+          done
       - uses: actions/upload-artifact@v4
         with:
           name: app-debug.apk
