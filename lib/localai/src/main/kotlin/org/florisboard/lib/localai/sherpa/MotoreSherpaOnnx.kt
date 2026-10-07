@@ -78,7 +78,7 @@ class MotoreSherpaOnnx : MotoreTrascrizione {
         for ((indice, segmento) in segmenti.withIndex()) {
             val flusso = motore.createStream()
             val risultato = try {
-                flusso.acceptWaveform(segmento.campioniAudio, FREQUENZA_CAMPIONAMENTO)
+                flusso.acceptWaveform(conSilenzioAttorno(segmento.campioniAudio), FREQUENZA_CAMPIONAMENTO)
                 motore.decode(flusso)
                 motore.getResult(flusso)
             } finally {
@@ -108,6 +108,16 @@ class MotoreSherpaOnnx : MotoreTrascrizione {
         )
     }
 
+    /**
+     * Il blocco con un po' di silenzio prima e dopo. I transducer come Parakeet perdono la prima o l'ultima
+     * parola quando l'audio comincia o finisce proprio sul parlato, come capita a un vocale chiuso di scatto.
+     */
+    private fun conSilenzioAttorno(campioni: FloatArray): FloatArray {
+        val risultato = FloatArray(SILENZIO_PRIMA + campioni.size + SILENZIO_DOPO)
+        System.arraycopy(campioni, 0, risultato, SILENZIO_PRIMA, campioni.size)
+        return risultato
+    }
+
     override fun close() {
         riconoscitore?.release()
         riconoscitore = null
@@ -117,5 +127,11 @@ class MotoreSherpaOnnx : MotoreTrascrizione {
     private companion object {
         /** I modelli lavorano a 16 kHz, come i campioni prodotti da AudioDecoder. */
         const val FREQUENZA_CAMPIONAMENTO = 16_000
+
+        /** 0,3 s di silenzio prima di ogni blocco. */
+        const val SILENZIO_PRIMA = FREQUENZA_CAMPIONAMENTO * 3 / 10
+
+        /** 0,5 s di silenzio dopo ogni blocco. */
+        const val SILENZIO_DOPO = FREQUENZA_CAMPIONAMENTO / 2
     }
 }
