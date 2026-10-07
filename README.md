@@ -35,7 +35,7 @@ graph TD
 
     subgraph "Modulo :lib:localai"
         E[AudioDecoder - MediaCodec e MediaExtractor]
-        F[AudioSegmenter - segmenti fino a 28 s, tagliati nelle pause]
+        F[RilevatoreParlato - Silero VAD v6, blocchi di parlato fino a 24-35 s secondo il motore]
         L[LocalAiManager - sceglie motore, modello e lingua]
         H[MotoreWhisperCpp - whisper.cpp via JNI]
         K[MotoreSherpaOnnx - sherpa-onnx]
@@ -49,7 +49,7 @@ graph TD
 ```
 
 - **`:app`** (`io.github.donatogranvilla.poldokeyboard`): condivisione, archivio Room condiviso tra i processi, servizio in primo piano nel processo `:trascrizione`, notifiche, tastiera di trascrizione, storico e schermata dei modelli (Compose, Material 3 con i colori del telefono).
-- **`:lib:localai`**: decodifica dell'audio, segmentazione, motori di trascrizione, catalogo e import dei modelli, benchmark. whisper.cpp 1.9.4 è un submodule git in `lib/localai/src/main/cpp/whisper.cpp`, compilato per arm64-v8a in sette varianti del backend CPU, da ARMv8.0 ad ARMv9.2 con SVE2 e SME: all'avvio si carica la più veloce che il processore supporta, così l'app gira sui telefoni vecchi e sfrutta le istruzioni di quelli nuovi. sherpa-onnx 1.13.8 arriva come libreria già compilata della release ufficiale, con ONNX Runtime incluso, insieme alla sua API Kotlin.
+- **`:lib:localai`**: decodifica dell'audio, rilevamento del parlato con Silero VAD v6 (l'unico modello incluso nell'APK, 885 KB), motori di trascrizione, catalogo e import dei modelli, benchmark. whisper.cpp 1.9.4 è un submodule git in `lib/localai/src/main/cpp/whisper.cpp`, compilato per arm64-v8a in sette varianti del backend CPU, da ARMv8.0 ad ARMv9.2 con SVE2 e SME: all'avvio si carica la più veloce che il processore supporta, così l'app gira sui telefoni vecchi e sfrutta le istruzioni di quelli nuovi. sherpa-onnx 1.13.8 arriva come libreria già compilata della release ufficiale, con ONNX Runtime incluso, insieme alla sua API Kotlin.
 - **Isolamento**: il motore gira in un processo separato; se esaurisce la memoria si chiude quel processo, non l'app.
 
 ---

@@ -2,8 +2,12 @@ package org.florisboard.lib.localai
 
 import android.content.Context
 import android.net.Uri
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.florisboard.lib.localai.audio.AudioDecoder
 import org.florisboard.lib.localai.audio.AudioSegmenter
+import org.florisboard.lib.localai.audio.RilevatoreParlato
+import org.florisboard.lib.localai.audio.SegmentatoreParlato
 import org.florisboard.lib.localai.engine.*
 import org.florisboard.lib.localai.model.ModelManager
 import org.florisboard.lib.localai.sherpa.MotoreSherpaOnnx
@@ -27,6 +31,9 @@ class LocalAiManager(
 
     var activeEngine: MotoreTrascrizione = MotoreWhisperCpp()
         private set
+
+    /** Il rilevatore di parlato, caricato al primo vocale e tenuto per i successivi: pesa circa 1 MB. */
+    private val rilevatore: RilevatoreParlato? by lazy { RilevatoreParlato.crea(context) }
 
     /**
      * Assicura che il modello sia caricato in RAM nel motore giusto: quello indicato oppure, senza id,
@@ -94,7 +101,7 @@ class LocalAiManager(
     }
 
     /**
-     * Divide i campioni a 16 kHz mono in segmenti e li trascrive con il motore del modello richiesto.
+     * Divide i campioni a 16 kHz mono in blocchi di parlato e li trascrive con il motore del modello richiesto.
      */
     private suspend fun trascriviCampioni(
         campioni: FloatArray,
@@ -105,7 +112,29 @@ class LocalAiManager(
         ensureModelLoaded(idModello).onFailure { return Result.failure(it) }
         val opzioniEffettive = opzioni.copy(lingua = linguaPer(activeEngine.modelloCorrente, opzioni))
         return runCatching {
-            activeEngine.trascrivi(AudioSegmenter.segmenta(campioni), opzioniEffettive, avanzamento)
+            val segmenti = segmentiDiParlato(campioni, activeEngine.modelloCorrente)
+            if (segmenti.isEmpty()) throw NessunParlatoException()
+            activeEngine.trascrivi(segmenti, opzioniEffettive, avanzamento)
+                // Il rilevatore toglie il non-parlato: la somma dei segmenti è più corta del vocale
+                .copy(durataAudioMs = campioni.size * 1000L / FREQUENZA_CAMPIONAMENTO)
+        }
+    }
+
+    /**
+     * I blocchi da trascrivere: il parlato trovato dal rilevatore, unito fino alla durata massima del motore.
+     * Se il rilevatore non c'è o non riesce, l'audio intero diviso nelle pause, come prima del VAD.
+     * @return Vuoto se nel vocale non c'è parlato.
+     */
+    private suspend fun segmentiDiParlato(
+        campioni: FloatArray,
+        modello: ModelloInstallato?,
+    ): List<SegmentoVoce> = withContext(Dispatchers.Default) {
+        val durataMassimaS = (modello?.architettura ?: ArchitetturaModello.GGML).durataMassimaBloccoS
+        val tratti = rilevatore?.trova(campioni, durataMassimaS)
+        if (tratti == null) {
+            AudioSegmenter.segmenta(campioni)
+        } else {
+            SegmentatoreParlato.segmenta(campioni, tratti, durataMassimaS)
         }
     }
 
@@ -150,5 +179,10 @@ class LocalAiManager(
     private fun sostituisciMotore(nuovo: MotoreTrascrizione) {
         activeEngine.close()
         activeEngine = nuovo
+    }
+
+    private companion object {
+        /** AudioDecoder consegna sempre campioni a 16 kHz. */
+        const val FREQUENZA_CAMPIONAMENTO = 16_000
     }
 }

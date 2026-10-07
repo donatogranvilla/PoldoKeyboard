@@ -12,3 +12,10 @@ class NessunModelloException :
  */
 class MotoreNonDisponibileException(nomeMotore: String) :
     IllegalStateException("Il motore $nomeMotore non è disponibile in questa build: manca la libreria nativa.")
+
+/**
+ * Il rilevatore non ha trovato parlato nel vocale, neanche sottovoce: trascriverlo farebbe solo inventare
+ * frasi al modello.
+ */
+class NessunParlatoException :
+    IllegalStateException("Nel vocale non si sente nessuno parlare.")

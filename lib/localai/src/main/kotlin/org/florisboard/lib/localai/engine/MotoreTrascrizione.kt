@@ -72,22 +72,28 @@ enum class TipoMotore {
  * Com'è fatto un modello, e quindi quale motore lo esegue e quali file servono.
  * @property motore Il motore che sa eseguirlo.
  * @property singoloFile true se il modello è un solo file; altrimenti è una cartella di file.
+ * @property durataMassimaBloccoS La durata massima, in secondi, di un blocco di parlato da trascrivere in una
+ *   volta: Whisper lavora su finestre di 30 s, GigaAM regge fino a 25 s, Omnilingual fino a 40 s.
  */
-enum class ArchitetturaModello(val motore: TipoMotore, val singoloFile: Boolean) {
+enum class ArchitetturaModello(
+    val motore: TipoMotore,
+    val singoloFile: Boolean,
+    val durataMassimaBloccoS: Int = 28,
+) {
     /** Whisper in formato GGML per whisper.cpp: un solo file `ggml-*.bin`. */
     GGML(TipoMotore.WHISPER_CPP, singoloFile = true),
 
     /** Transducer NeMo, come Parakeet TDT e GigaAM: encoder, decoder, joiner e tokens.txt. */
-    NEMO_TRANSDUCER(TipoMotore.SHERPA_ONNX, singoloFile = false),
+    NEMO_TRANSDUCER(TipoMotore.SHERPA_ONNX, singoloFile = false, durataMassimaBloccoS = 24),
 
     /** Transducer Zipformer di icefall: encoder, decoder, joiner e tokens.txt. */
     ZIPFORMER_TRANSDUCER(TipoMotore.SHERPA_ONNX, singoloFile = false),
 
     /** CTC NeMo: un solo file model.onnx più tokens.txt. */
-    NEMO_CTC(TipoMotore.SHERPA_ONNX, singoloFile = false),
+    NEMO_CTC(TipoMotore.SHERPA_ONNX, singoloFile = false, durataMassimaBloccoS = 24),
 
     /** Omnilingual ASR di Meta (CTC): model.onnx più tokens.txt. */
-    OMNILINGUAL_CTC(TipoMotore.SHERPA_ONNX, singoloFile = false),
+    OMNILINGUAL_CTC(TipoMotore.SHERPA_ONNX, singoloFile = false, durataMassimaBloccoS = 35),
 
     /** Moonshine: preprocess, encode e decoder (v1) oppure encoder e decoder unito (v2), più tokens.txt. */
     MOONSHINE(TipoMotore.SHERPA_ONNX, singoloFile = false),
