@@ -229,12 +229,13 @@ Java_org_florisboard_lib_localai_whisper_WhisperNative_trovaParlato(
 
 /**
  * Trascrive un segmento di audio a 16 kHz mono.
+ * @param prompt Il testo da dare al modello come contesto precedente, o null per nessuno.
  * @return Il testo trascritto, o null se whisper.cpp non è riuscito a elaborare l'audio.
  */
 extern "C" JNIEXPORT jstring JNICALL
 Java_org_florisboard_lib_localai_whisper_WhisperNative_fullTranscribe(
         JNIEnv * env, jobject /* thiz */, jlong handle, jfloatArray campioni, jstring lingua,
-        jint thread, jboolean traduci) {
+        jint thread, jboolean traduci, jstring prompt) {
     auto * contesto = reinterpret_cast<whisper_context *>(handle);
     if (contesto == nullptr) {
         return nullptr;
@@ -264,6 +265,14 @@ Java_org_florisboard_lib_localai_whisper_WhisperNative_fullTranscribe(
         env->ReleaseStringUTFChars(lingua, caratteri);
     }
     parametri.language = codiceLingua.c_str();
+
+    std::string testoPrompt;
+    if (prompt != nullptr) {
+        const char * caratteri = env->GetStringUTFChars(prompt, nullptr);
+        testoPrompt = caratteri;
+        env->ReleaseStringUTFChars(prompt, caratteri);
+        parametri.initial_prompt = testoPrompt.c_str();
+    }
 
     const jsize numeroCampioni = env->GetArrayLength(campioni);
     jfloat * dati = env->GetFloatArrayElements(campioni, nullptr);

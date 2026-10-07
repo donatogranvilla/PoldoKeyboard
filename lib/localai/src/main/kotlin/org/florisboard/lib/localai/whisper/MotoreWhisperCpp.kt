@@ -75,6 +75,7 @@ class MotoreWhisperCpp : MotoreTrascrizione {
         } else {
             null
         }
+        val prompt = PromptPunteggiatura.per(lingua)
 
         for ((idx, seg) in segmenti.withIndex()) {
             val baseProgresso = idx.toFloat() / numSegmenti
@@ -86,8 +87,11 @@ class MotoreWhisperCpp : MotoreTrascrizione {
                 samples = seg.campioniAudio,
                 language = lingua,
                 threads = opzioni.numThread,
-                translate = opzioni.traduciInInglese
-            ) ?: ""
+                translate = opzioni.traduciInInglese,
+                prompt = prompt,
+            )
+                // Su un blocco quasi muto Whisper può ripetere il prompt invece di trascrivere
+                ?.trim()?.removePrefix(prompt.orEmpty()) ?: ""
 
             val chunkProcessato = if (opzioni.formattaPunteggiatura) {
                 TextPostProcessor.process(chunkGrezzo, lingua, TextPostProcessor.continuaFrase(builder))

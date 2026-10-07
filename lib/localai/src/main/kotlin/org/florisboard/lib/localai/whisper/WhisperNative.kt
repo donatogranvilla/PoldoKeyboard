@@ -53,6 +53,7 @@ object WhisperNative {
         samples: FloatArray,
         language: String?,
         threads: Int,
-        translate: Boolean
+        translate: Boolean,
+        prompt: String?,
     ): String?
 }
