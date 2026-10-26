@@ -1,10 +1,37 @@
-# PoldoKeyboard — Trascrizione in locale dei vocali
+# PoldoKeyboard — trascrivi i vocali di WhatsApp sul telefono, senza mandarli su internet
 
-**PoldoKeyboard** trascrive sul telefono, senza rete, i messaggi vocali ricevuti su WhatsApp, Telegram e app simili. Usa modelli aperti eseguiti in locale: **Whisper** con **whisper.cpp**, e **Parakeet**, **GigaAM**, **Moonshine** e **Omnilingual** con **sherpa-onnx**. Privilegia la qualità del testo rispetto alla velocità.
+> Ti è arrivato un vocale di quattro minuti e sei in riunione? Poldo lo ascolta al posto tuo e te lo scrive. Tutto sul telefono: il vocale non va da nessuna parte.
 
-Non è una tastiera completa: per scrivere si continua a usare la propria tastiera (per esempio SwiftKey). PoldoKeyboard aggiunge una **tastiera di sola trascrizione**, come la digitazione vocale di Google, da cui inserire il testo dei vocali nella chat.
+**PoldoKeyboard** è un'app Android gratuita e open source che **trascrive i messaggi vocali** di **WhatsApp**, **Telegram** e di altre app **direttamente sul telefono**, con l'intelligenza artificiale e **senza inviare l'audio a nessun server**. Condividi il vocale, aspetti la notifica, e il testo è pronto: lo leggi, lo copi, oppure lo inserisci nella risposta da una tastiera dedicata, senza uscire dalla chat.
 
-> **Stato:** il flusso completo funziona sul telefono di test (Motorola Edge 50 Fusion, Android 16) con Whisper Small: un vocale breve è pronto in meno di 20 secondi. I motori sono compilati solo per arm64-v8a; altrove risultano non disponibili. I modelli sherpa-onnx e i Whisper specializzati del catalogo sono ancora da provare sul telefono.
+Sotto il cofano lavorano gli stessi modelli di riconoscimento vocale (*speech-to-text*) dei servizi cloud, eseguiti in locale: **Whisper** di OpenAI con **whisper.cpp**, e **Parakeet**, **GigaAM**, **Moonshine** e **Omnilingual** con **sherpa-onnx**. Prima la qualità del testo, poi la velocità.
+
+### Perché ti piacerà
+
+- 🔒 **Privacy vera.** L'audio e le trascrizioni non lasciano mai il telefono. Niente account, niente pubblicità, niente telemetria.
+- 📴 **Funziona offline.** Una volta scaricato il modello, trascrive anche in aereo o in montagna.
+- ⌨️ **Una tastiera che fa una cosa sola.** Non sostituisce la tua tastiera (SwiftKey, Gboard o altre): ci passi un attimo, tocchi la trascrizione, **Inserisci**, e torni a scrivere come prima.
+- 🧠 **Il modello lo scegli tu.** 35 modelli per 14 lingue, compresi alcuni specializzati in italiano. Se un testo non ti convince, **Ritrascrivi con…** un modello più grande.
+- 🤫 **Niente frasi inventate sul silenzio.** Prima di trascrivere, un rilevatore del parlato (Silero VAD) toglie silenzi e rumore, dove i modelli tendono ad avere le allucinazioni.
+- 📚 **Lavora in background**, anche a schermo spento e con più vocali in coda.
+
+### Per chi è
+
+- Per chi riceve vocali lunghi e non può ascoltarli: in ufficio, in treno, in biblioteca, con un bambino che dorme accanto.
+- Per chi preferisce leggere invece di ascoltare, o ha difficoltà uditive.
+- Per chi non vuole che i propri vocali passino dai server di qualcun altro.
+
+### A che punto è
+
+Il progetto è giovane ma funziona: sul telefono di test (Motorola Edge 50 Fusion, Android 16) **Parakeet v3 trascrive un vocale di due minuti e mezzo in circa 17 secondi**, con la punteggiatura. Whisper è più lento ma su alcune parole più preciso.
+
+- Serve un telefono **Android 8.0 o successivo a 64 bit (arm64)**: su altri processori i motori non sono disponibili.
+- L'interfaccia è in italiano e in inglese.
+- **Non c'è ancora una release ufficiale.** L'APK si scarica dagli artifact della CI su GitHub Actions, che richiedono di aver fatto l'accesso a GitHub.
+
+### In English
+
+**PoldoKeyboard** is a free, open-source Android app that **transcribes WhatsApp and Telegram voice messages on your phone, fully offline**, with **on-device speech-to-text**: OpenAI **Whisper** through whisper.cpp, and NVIDIA **Parakeet**, GigaAM, Moonshine and Omnilingual through sherpa-onnx. Share a voice note, get a notification with the text, and insert it into your reply from a transcription-only keyboard. No cloud, no account, no ads: the audio never leaves the phone. The interface is in English and Italian, with models for 14 languages.
 
 ---
 
