@@ -2,23 +2,55 @@ package org.florisboard.lib.localai.model
 
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
+import java.io.File
 
 /**
  * Catalogo dei modelli importabili, letto dal file di dati `catalogo_modelli.json` del modulo.
  * Ogni voce ha impronta SHA-256 e dimensione prese dalla fonte ufficiale (API di Hugging Face o di GitHub):
- * così un file importato si riconosce con certezza. L'app non usa la rete, quindi il catalogo si aggiorna
- * con le nuove versioni dell'app; i modelli che non ci sono si importano come personalizzati.
+ * così un file importato si riconosce con certezza. Il catalogo incluso nell'app si può aggiornare su richiesta
+ * dell'utente con quello pubblicato su GitHub ([AggiornamentoCatalogo]); i modelli che non ci sono si importano
+ * come personalizzati.
  */
 object ModelCatalog {
     private const val RISORSA = "/catalogo_modelli.json"
     private val formato = Json { ignoreUnknownKeys = true }
 
-    /** Tutti i modelli del catalogo, letti una sola volta. */
-    val ALL_MODELS: List<ModelInfo> by lazy {
+    @Volatile private var fileScaricato: File? = null
+    @Volatile private var modelli: List<ModelInfo>? = null
+
+    /** I modelli del catalogo incluso nell'app, letti una sola volta. */
+    val inclusi: List<ModelInfo> by lazy {
         val flusso = checkNotNull(ModelCatalog::class.java.getResourceAsStream(RISORSA)) {
             "Catalogo dei modelli mancante: $RISORSA"
         }
         flusso.bufferedReader().use { lettore -> formato.decodeFromString<List<ModelInfo>>(lettore.readText()) }
+    }
+
+    /** Tutti i modelli: quelli inclusi nell'app, aggiornati e completati dal catalogo scaricato se c'è. */
+    val ALL_MODELS: List<ModelInfo>
+        get() = modelli ?: carica().also { modelli = it }
+
+    /**
+     * Usa il catalogo scaricato nel file indicato, o nessuno con null. Se il file è lo stesso di prima non rilegge
+     * nulla: per un file appena riscritto serve [ricarica].
+     */
+    fun usaCatalogoScaricato(file: File?) {
+        if (file == fileScaricato) return
+        fileScaricato = file
+        modelli = null
+    }
+
+    /** Rilegge il catalogo scaricato al prossimo accesso. */
+    fun ricarica() {
+        modelli = null
+    }
+
+    /** Il catalogo incluso unito a quello scaricato; uno scaricato illeggibile si ignora. */
+    private fun carica(): List<ModelInfo> {
+        val scaricati = fileScaricato
+            ?.let { file -> runCatching { LetturaCatalogo.leggi(file.readText()).modelli }.getOrNull() }
+            .orEmpty()
+        return LetturaCatalogo.unisci(inclusi, scaricati)
     }
 
     val WHISPER_TINY_Q5: ModelInfo get() = trova("whisper-tiny-q5_1")
