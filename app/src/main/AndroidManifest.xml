@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Rete: solo per scaricare da GitHub il catalogo dei modelli, quando l'utente preme "Aggiorna l'elenco".
+          L'audio e le trascrizioni non lasciano mai il telefono -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <!-- Notifiche: avanzamento della trascrizione e testo pronto (Android 13 e successivi) -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 

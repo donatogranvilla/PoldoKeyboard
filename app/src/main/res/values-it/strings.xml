@@ -70,6 +70,16 @@
     <string name="modelli_da_scaricare_spiegazione">Scarica apre il file nel browser. Quando il download è finito, torna qui e tocca Importa.</string>
     <string name="modelli_dispositivo">Il tuo telefono: %1$d GB di RAM, %2$d core. «Consigliato» indica il modello più adatto.</string>
     <string name="modelli_tutti_scaricati">Hai già tutti i modelli del catalogo per questa lingua.</string>
+    <string name="catalogo_aggiorna">Aggiorna l\'elenco</string>
+    <string name="catalogo_in_corso">Aggiornamento dell\'elenco…</string>
+    <string name="catalogo_nota_rete">L\'app si collega a GitHub solo quando tocchi Aggiorna l\'elenco, per scaricare l\'elenco dei modelli. I vocali e le trascrizioni non lasciano mai il telefono.</string>
+    <string name="catalogo_gia_aggiornato">L\'elenco è già aggiornato.</string>
+    <string name="catalogo_aggiornato">Elenco aggiornato: modelli nuovi %1$d, aggiornati %2$d.</string>
+    <string name="catalogo_voci_scartate">Modelli che richiedono una versione più recente dell\'app: %1$d.</string>
+    <string name="catalogo_errore_rete">Impossibile raggiungere GitHub. Controlla la connessione e riprova.</string>
+    <string name="catalogo_errore_server">GitHub ha risposto con l\'errore %1$d. Riprova più tardi.</string>
+    <string name="catalogo_errore_formato">Il file scaricato non è un elenco di modelli valido. L\'elenco non è cambiato.</string>
+    <string name="catalogo_errore_altro">Impossibile aggiornare l\'elenco: %1$s</string>
     <string name="download_avviato">Download nel browser: quando finisce, torna qui e tocca Importa.</string>
     <string name="browser_assente">Nessuna app può aprire questo indirizzo.</string>
 
@@ -161,7 +171,7 @@
     <!-- Guida alla scelta dei modelli -->
     <string name="guida_titolo">Come scegliere e importare un modello</string>
     <string name="guida_come_funziona_titolo">Come funziona</string>
-    <string name="guida_come_funziona">Tocca Scarica su un modello: il browser scarica il file. Poi torna qui, tocca Importa e scegli il file scaricato. L\'app non usa internet: riconosce i modelli del catalogo dall\'impronta del file e controlla ogni modello prima di usarlo.</string>
+    <string name="guida_come_funziona">Tocca Scarica su un modello: il browser scarica il file. Poi torna qui, tocca Importa e scegli il file scaricato. L\'app non scarica nulla da sola: riconosce i modelli del catalogo dall\'impronta del file e controlla ogni modello prima di usarlo. Aggiorna l\'elenco aggiunge i modelli nuovi pubblicati su GitHub.</string>
     <string name="guida_specializzato_titolo">Specializzato o multilingue?</string>
     <string name="guida_specializzato">Un modello specializzato conosce una sola lingua: in quella è spesso più accurato o più leggero, e l\'app gliela fa usare sempre. Un modello multilingue va bene per vocali in qualsiasi lingua: la riconosce da sé, oppure usa quella scelta in «Lingua dei vocali».</string>
     <string name="guida_peso_titolo">Leggero o pesante?</string>

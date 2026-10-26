@@ -16,7 +16,9 @@ import org.florisboard.lib.localai.ImpostazioniTrascrizione
 import org.florisboard.lib.localai.LocalAiManager
 import org.florisboard.lib.localai.engine.ArchitetturaModello
 import org.florisboard.lib.localai.engine.ModelloInstallato
+import org.florisboard.lib.localai.model.AggiornamentoCatalogo
 import org.florisboard.lib.localai.model.AnalisiImport
+import org.florisboard.lib.localai.model.EsitoAggiornamentoCatalogo
 import org.florisboard.lib.localai.model.FormatoFileModello
 import org.florisboard.lib.localai.model.FormatoNonSupportatoException
 import org.florisboard.lib.localai.model.ModelCatalog
@@ -77,12 +79,30 @@ sealed interface ProblemaImport {
 }
 
 /**
+ * L'aggiornamento dell'elenco dei modelli da GitHub.
+ */
+sealed interface StatoCatalogo {
+    /** Nessun aggiornamento chiesto da quando la schermata è aperta. */
+    data object Nessuno : StatoCatalogo
+
+    /** Download in corso. */
+    data object InCorso : StatoCatalogo
+
+    /** Elenco aggiornato. */
+    data class Fatto(val esito: EsitoAggiornamentoCatalogo) : StatoCatalogo
+
+    /** L'aggiornamento non è riuscito; l'elenco resta quello di prima. */
+    data class Errore(val causa: Throwable) : StatoCatalogo
+}
+
+/**
  * Stato e azioni della schermata dei modelli. Sta in un ViewModel perché l'import di un modello grande
  * dura anche minuti e non deve ripartire da capo se lo schermo ruota.
  */
 class ModelliViewModel(application: Application) : AndroidViewModel(application) {
     private val modelManager = ModelManager(application)
     private val impostazioni = ImpostazioniTrascrizione(application)
+    private val aggiornamentoCatalogo = AggiornamentoCatalogo(application)
     private var lavoroImport: Job? = null
 
     /** RAM e core del telefono, per consigliare un modello. */
@@ -116,6 +136,10 @@ class ModelliViewModel(application: Application) : AndroidViewModel(application)
 
     /** La fase dell'import in corso. */
     var statoImport by mutableStateOf<StatoImport>(StatoImport.Nessuno)
+        private set
+
+    /** L'ultimo aggiornamento dell'elenco dei modelli. */
+    var statoCatalogo by mutableStateOf<StatoCatalogo>(StatoCatalogo.Nessuno)
         private set
 
     /** I modelli installati che coprono la lingua del filtro. */
@@ -154,6 +178,25 @@ class ModelliViewModel(application: Application) : AndroidViewModel(application)
             catalogo = tuttoCatalogo
             installati = presenti
             idAttivo = attivo
+        }
+    }
+
+    /**
+     * Scarica da GitHub l'elenco aggiornato dei modelli. È l'unica azione dell'app che usa la rete, e parte solo
+     * quando l'utente la chiede.
+     */
+    fun aggiornaCatalogo() {
+        if (statoCatalogo == StatoCatalogo.InCorso) return
+        statoCatalogo = StatoCatalogo.InCorso
+        viewModelScope.launch {
+            statoCatalogo = try {
+                StatoCatalogo.Fatto(aggiornamentoCatalogo.aggiorna())
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                StatoCatalogo.Errore(e)
+            }
+            aggiorna()
         }
     }
 

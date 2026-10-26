@@ -25,7 +25,8 @@ import java.security.MessageDigest
  * I modelli whisper.cpp sono un file `<id>.bin`, quelli sherpa-onnx una cartella `<id>/`. Per i modelli
  * fuori catalogo un file `<id>.json` accanto conserva nome, lingue e architettura scelti dall'utente.
  * Tutto sta in [Context.getNoBackupFilesDir]/modelli, escluso dal backup perché grande e reimportabile.
- * L'app non accede alla rete: i modelli si scaricano dal browser e poi si importano.
+ * I modelli si scaricano dal browser e poi si importano: l'app si collega a GitHub solo per aggiornare il catalogo,
+ * quando l'utente lo chiede.
  */
 class ModelManager(private val context: Context) {
     // Il modello si sceglie nel processo dell'app ma lo usa il servizio, in un altro processo:
@@ -33,6 +34,11 @@ class ModelManager(private val context: Context) {
     @Suppress("DEPRECATION")
     private val prefs = context.getSharedPreferences("localai_settings", Context.MODE_MULTI_PROCESS)
     private val formatoJson = Json { ignoreUnknownKeys = true }
+
+    init {
+        // Ogni processo che gestisce i modelli usa il catalogo aggiornato, se l'utente l'ha scaricato
+        AggiornamentoCatalogo.registra(context)
+    }
 
     private val modelsDir: File
         get() = File(context.noBackupFilesDir, "modelli").apply {

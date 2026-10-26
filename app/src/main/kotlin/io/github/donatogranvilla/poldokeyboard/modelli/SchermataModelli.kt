@@ -33,6 +33,7 @@ import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.FileOpen
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -67,7 +68,11 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import io.github.donatogranvilla.poldokeyboard.R
+import org.florisboard.lib.localai.model.CatalogoNonValidoException
+import org.florisboard.lib.localai.model.ConnessioneNonRiuscitaException
+import org.florisboard.lib.localai.model.EsitoAggiornamentoCatalogo
 import org.florisboard.lib.localai.model.ModelInfo
+import org.florisboard.lib.localai.model.RispostaServerException
 
 /** Ricerca dei modelli Whisper in formato ggml su Hugging Face. */
 private const val URL_RICERCA_HUGGING_FACE = "https://huggingface.co/models?search=whisper%20ggml"
@@ -154,6 +159,7 @@ fun SchermataModelli(viewModel: ModelliViewModel, onIndietro: () -> Unit) {
                     TitoloSezione(stringResource(R.string.modelli_sezione_da_scaricare))
                     TestoNota(stringResource(R.string.modelli_da_scaricare_spiegazione))
                     TestoNota(stringResource(R.string.modelli_dispositivo, (profilo.ramTotaleMb + 512) / 1024, profilo.numCoreCpu))
+                    AggiornamentoElenco(stato = viewModel.statoCatalogo, onAggiorna = viewModel::aggiornaCatalogo)
                 }
             }
             if (daScaricare.isEmpty()) {
@@ -203,6 +209,48 @@ fun SchermataModelli(viewModel: ModelliViewModel, onIndietro: () -> Unit) {
     if (mostraTest) {
         BenchmarkDialog(localAiManager = viewModel.motoreTest, onDismiss = { mostraTest = false })
     }
+}
+
+/**
+ * Il pulsante che scarica da GitHub l'elenco aggiornato dei modelli. Sotto, prima del primo aggiornamento, spiega
+ * quando l'app usa la rete; poi mostra l'esito dell'ultimo aggiornamento.
+ */
+@Composable
+private fun AggiornamentoElenco(stato: StatoCatalogo, onAggiorna: () -> Unit) {
+    val inCorso = stato == StatoCatalogo.InCorso
+    OutlinedButton(onClick = onAggiorna, enabled = !inCorso) {
+        Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+        Spacer(modifier = Modifier.width(ButtonDefaults.IconSpacing))
+        Text(stringResource(if (inCorso) R.string.catalogo_in_corso else R.string.catalogo_aggiorna))
+    }
+    TestoNota(
+        when (stato) {
+            StatoCatalogo.Nessuno, StatoCatalogo.InCorso -> stringResource(R.string.catalogo_nota_rete)
+            is StatoCatalogo.Fatto -> esitoCatalogo(stato.esito)
+            is StatoCatalogo.Errore -> erroreCatalogo(stato.causa)
+        }
+    )
+}
+
+/** Quanti modelli sono arrivati o cambiati, e quanti richiedono una versione più recente dell'app. */
+@Composable
+private fun esitoCatalogo(esito: EsitoAggiornamentoCatalogo): String {
+    val riepilogo = if (esito.nuovi.isEmpty() && esito.aggiornati.isEmpty()) {
+        stringResource(R.string.catalogo_gia_aggiornato)
+    } else {
+        stringResource(R.string.catalogo_aggiornato, esito.nuovi.size, esito.aggiornati.size)
+    }
+    if (esito.vociScartate == 0) return riepilogo
+    return riepilogo + " " + stringResource(R.string.catalogo_voci_scartate, esito.vociScartate)
+}
+
+/** Perché l'aggiornamento non è riuscito, detto all'utente. */
+@Composable
+private fun erroreCatalogo(causa: Throwable): String = when (causa) {
+    is ConnessioneNonRiuscitaException -> stringResource(R.string.catalogo_errore_rete)
+    is RispostaServerException -> stringResource(R.string.catalogo_errore_server, causa.codice)
+    is CatalogoNonValidoException -> stringResource(R.string.catalogo_errore_formato)
+    else -> stringResource(R.string.catalogo_errore_altro, causa.message.orEmpty())
 }
 
 /**

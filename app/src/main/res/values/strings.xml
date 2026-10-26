@@ -72,6 +72,16 @@
     <string name="modelli_da_scaricare_spiegazione">Download opens the file in the browser. When it has finished, come back here and tap Import.</string>
     <string name="modelli_dispositivo">Your phone: %1$d GB of RAM, %2$d cores. “Recommended” marks the model that suits it best.</string>
     <string name="modelli_tutti_scaricati">You already have all the catalog models for this language.</string>
+    <string name="catalogo_aggiorna">Update the list</string>
+    <string name="catalogo_in_corso">Updating the list…</string>
+    <string name="catalogo_nota_rete">The app connects to GitHub only when you tap Update the list, to download the list of models. Voice messages and transcriptions never leave the phone.</string>
+    <string name="catalogo_gia_aggiornato">The list is already up to date.</string>
+    <string name="catalogo_aggiornato">List updated: %1$d new models, %2$d updated.</string>
+    <string name="catalogo_voci_scartate">%1$d models need a newer version of the app.</string>
+    <string name="catalogo_errore_rete">Couldn\'t reach GitHub. Check your connection and try again.</string>
+    <string name="catalogo_errore_server">GitHub answered with error %1$d. Try again later.</string>
+    <string name="catalogo_errore_formato">The downloaded file is not a valid list of models. The list hasn\'t changed.</string>
+    <string name="catalogo_errore_altro">Couldn\'t update the list: %1$s</string>
     <string name="download_avviato">Downloading in the browser: when it\'s done, come back here and tap Import.</string>
     <string name="browser_assente">No app can open this link.</string>
 
@@ -163,7 +173,7 @@
     <!-- Guida alla scelta dei modelli -->
     <string name="guida_titolo">How to choose and import a model</string>
     <string name="guida_come_funziona_titolo">How it works</string>
-    <string name="guida_come_funziona">Tap Download on a model: the browser downloads the file. Then come back here, tap Import and pick the downloaded file. The app doesn\'t use the internet: it recognizes catalog models by the file\'s fingerprint and checks every model before using it.</string>
+    <string name="guida_come_funziona">Tap Download on a model: the browser downloads the file. Then come back here, tap Import and pick the downloaded file. The app downloads nothing by itself: it recognizes catalog models by the file\'s fingerprint and checks every model before using it. Update the list adds the new models published on GitHub.</string>
     <string name="guida_specializzato_titolo">Specialized or multilingual?</string>
     <string name="guida_specializzato">A specialized model knows a single language: in that language it is often more accurate or lighter, and the app always uses it with that language. A multilingual model works for voice messages in any language: it detects the language by itself, or uses the one chosen in “Voice message language”.</string>
     <string name="guida_peso_titolo">Light or heavy?</string>
