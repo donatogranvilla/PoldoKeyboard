@@ -61,9 +61,19 @@ Due motori: **whisper.cpp** per i modelli Whisper in formato GGML, un solo file 
 La schermata **Modelli** si apre dall'app e dalla tastiera di trascrizione:
 
 - **Catalogo** di 35 modelli per 14 lingue, filtrabile per lingua: prima gli specializzati, poi i multilingue. Ogni scheda indica lingue, accuratezza, velocità, peso, RAM consigliata, file da scaricare, licenza e pagina del modello. Il catalogo è un file di dati, `lib/localai/src/main/resources/catalogo_modelli.json`.
-- **Scarica** apre il file nel browser, perché l'app non ha il permesso INTERNET; **Importa** lo installa dal selettore di sistema. Il file si riconosce dall'impronta SHA-256 e dai primi byte. I modelli del catalogo si installano da soli; per gli altri l'app chiede nome, lingue e tipo. Per i formati che non vanno (GGUF, safetensors, PyTorch, un ONNX singolo) spiega cosa scaricare al loro posto.
+- **Aggiorna l'elenco** scarica da GitHub, solo quando lo tocchi, il catalogo pubblicato in questo repository: così i modelli nuovi arrivano senza aggiornare l'app. Le voci che una versione vecchia dell'app non sa leggere si saltano, e dopo un aggiornamento dell'app vale di nuovo il catalogo incluso.
+- **Scarica** apre il file nel browser; **Importa** lo installa dal selettore di sistema. Il file si riconosce dall'impronta SHA-256 e dai primi byte. I modelli del catalogo si installano da soli; per gli altri l'app chiede nome, lingue e tipo. Per i formati che non vanno (GGUF, safetensors, PyTorch, un ONNX singolo) spiega cosa scaricare al loro posto.
 - **Lingua dei vocali**: i modelli specializzati usano sempre la loro lingua; per i multilingue si sceglie una lingua fissa oppure il riconoscimento automatico.
 - Una **guida** spiega quale file scaricare (quantizzazioni q5, q8 e f16; versioni int8) e dove cercare altri modelli.
+
+### Aggiornare il catalogo
+
+Il catalogo è [`lib/localai/src/main/resources/catalogo_modelli.json`](lib/localai/src/main/resources/catalogo_modelli.json), un elenco JSON di voci come quelle già presenti. L'app lo scarica dal **branch predefinito** del repository, allo stesso percorso.
+
+- Per pubblicare un modello nuovo o una correzione basta un commit sul branch predefinito: le app installate lo ricevono al prossimo **Aggiorna l'elenco**. GitHub può servire la versione precedente ancora per qualche minuto.
+- Non spostare né rinominare il file: le versioni già installate non lo troverebbero più.
+- Ogni voce deve avere un id unico, il nome, la dimensione, lo SHA-256 di 64 cifre esadecimali, un `tipoMotore` coerente con l'`architettura` e indirizzi `https://`. Il test `LetturaCatalogoTest` controlla tutto il file; l'app salta le voci non valide.
+- Un'architettura nuova va prima aggiunta al codice: le versioni vecchie dell'app salteranno quelle voci e lo diranno all'utente.
 
 | Lingua | Specializzati nel catalogo | Multilingue che la coprono |
 | :--- | :--- | :--- |
@@ -90,7 +100,7 @@ Il modello predefinito lo sceglierà il benchmark sui vocali reali (fase F4 del 
 
 ## Privacy e licenze
 
-- Nessun backend, nessuna API cloud, nessuna telemetria; l'app non ha il permesso INTERNET.
+- Nessun backend, nessuna API cloud, nessuna telemetria. L'app ha il permesso INTERNET per un solo scopo: scaricare il catalogo dei modelli da `raw.githubusercontent.com` quando tocchi **Aggiorna l'elenco**. I vocali e le trascrizioni non lasciano mai il telefono. Tutto il codice di rete sta in un file, [`ScaricatoreCatalogo.kt`](lib/localai/src/main/kotlin/org/florisboard/lib/localai/model/ScaricatoreCatalogo.kt), e la CI fallisce se classi di rete compaiono altrove.
 - I vocali condivisi e le trascrizioni restano nella memoria privata dell'app finché non li elimini, e sono esclusi dal backup. Il testo copiato è segnato come sensibile negli appunti.
 - Licenze del codice: whisper.cpp e ggml MIT, sherpa-onnx Apache-2.0 con ONNX Runtime MIT, Apache Commons Compress, AndroidX e Kotlin Apache-2.0. Nessuna dipendenza GPL. I modelli hanno licenze proprie (MIT, Apache-2.0, CC-BY-4.0); i pochi non commerciali sono segnalati nell'app. Dettagli in [`THIRD_PARTY_LICENSES/README.md`](THIRD_PARTY_LICENSES/README.md).
 - Il progetto è nato come fork di FlorisBoard (Apache-2.0); dal branch `modulo-trascrizione` non ne contiene più il codice.

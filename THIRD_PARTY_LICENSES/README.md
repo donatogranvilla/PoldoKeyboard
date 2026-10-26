@@ -71,5 +71,6 @@ The app ships no model: users download them with a browser and import them. The 
 ## 3. Privacy & Offline Compliance
 
 - **No Remote Telemetry**: No Firebase, no Crashlytics, no remote telemetry SDKs.
-- **Local Storage**: Models are downloaded by the user with a browser, imported through the system file picker, recognized by their SHA-256 and stored in private no-backup storage (`context.noBackupFilesDir/modelli/`: a file for whisper.cpp models, an extracted folder for sherpa-onnx models). The app has no INTERNET permission.
+- **Local Storage**: Models are downloaded by the user with a browser, imported through the system file picker, recognized by their SHA-256 and stored in private no-backup storage (`context.noBackupFilesDir/modelli/`: a file for whisper.cpp models, an extracted folder for sherpa-onnx models).
+- **Single Network Use**: The INTERNET permission serves one purpose: downloading the model catalog (`catalogo_modelli.json`) from `raw.githubusercontent.com` when the user taps "Update the list". The request carries no user data. All network code lives in `ScaricatoreCatalogo.kt`, and CI fails if network classes appear in any other Kotlin or Java file.
 - **No Cloud Inference**: Audio is decoded with Android `MediaCodec` and transcribed by the native engine on the device; it is never transmitted over any network interface. Shared voice messages are copied to private no-backup storage (`context.noBackupFilesDir/vocali/`) and stay there, with their transcriptions, until the user deletes them.
