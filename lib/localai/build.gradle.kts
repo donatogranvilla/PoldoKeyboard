@@ -34,7 +34,7 @@ kotlin {
 configure<LibraryExtension> {
     namespace = "io.github.donatogranvilla.poldokeyboard.localai"
     compileSdk = providers.gradleProperty("projectCompileSdk").get().toInt()
-    // Versione locale facoltativa (gradle.properties dell'utente), altrimenti quella di FlorisBoard
+    // Versione locale facoltativa (gradle.properties dell'utente), altrimenti quella del catalogo delle versioni
     ndkVersion = providers.gradleProperty("poldo.ndkVersion").getOrElse(tools.versions.ndk.get())
 
     defaultConfig {

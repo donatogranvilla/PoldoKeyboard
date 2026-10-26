@@ -186,6 +186,10 @@
       same "printed page" as the copyright notice for easier
       identification within third-party archives.
 
+   Copyright 2026 The PoldoKeyboard Contributors
+
+   PoldoKeyboard started as a fork of FlorisBoard. Parts of the build
+   configuration are derived from it:
    Copyright 2020-2026 The FlorisBoard Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");

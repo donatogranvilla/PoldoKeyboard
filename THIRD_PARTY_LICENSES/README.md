@@ -10,7 +10,7 @@ In accordance with project requirements, every dependency is audited to ensure c
 
 | Component | Repository / Author | Version | License | Commercial Use Allowed | Attribution Required | Notes / Constraints |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **FlorisBoard** | [florisboard/florisboard](https://github.com/florisboard/florisboard) | — | Apache-2.0 | **Yes** | Yes | The project started as a fork of FlorisBoard 0.6.0-alpha02; since the `modulo-trascrizione` branch it no longer contains FlorisBoard code. |
+| **FlorisBoard** | [florisboard/florisboard](https://github.com/florisboard/florisboard) | — | Apache-2.0 | **Yes** | Yes | The project started as a fork of FlorisBoard 0.6.0-alpha02; it no longer contains FlorisBoard code, only parts of the build configuration, credited in `LICENSE`. |
 | **AndroidX Libraries** | Google / Android Open Source Project | Various | Apache-2.0 | **Yes** | Yes | Core, Lifecycle, Compose runtime & UI. |
 | **Kotlin & Coroutines** | JetBrains | 2.4.x / 1.10.x | Apache-2.0 | **Yes** | Yes | Standard Kotlin runtime and coroutines. |
 | **whisper.cpp** (with **ggml**) | [ggml-org/whisper.cpp](https://github.com/ggml-org/whisper.cpp) | 1.9.4 (git submodule) | MIT | **Yes** | Yes | C/C++ ASR engine, built from source for arm64-v8a only, as shared libraries with seven CPU backend variants (ARMv8.0 to ARMv9.2 with SVE2 and SME); the app loads the fastest one the processor supports. |
