@@ -55,7 +55,7 @@ import io.github.donatogranvilla.poldokeyboard.ui.dataOra
 import io.github.donatogranvilla.poldokeyboard.ui.rememberModelliDisponibili
 import io.github.donatogranvilla.poldokeyboard.ui.testoTrascrizione
 import kotlinx.coroutines.launch
-import org.florisboard.lib.localai.engine.ModelloInstallato
+import io.github.donatogranvilla.poldokeyboard.localai.engine.ModelloInstallato
 
 /** Altezza del pannello rispetto allo schermo: più di una tastiera, per leggere comodamente. */
 private const val QUOTA_ALTEZZA_SCHERMO = 0.45f

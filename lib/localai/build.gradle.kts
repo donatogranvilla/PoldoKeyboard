@@ -32,7 +32,7 @@ kotlin {
 }
 
 configure<LibraryExtension> {
-    namespace = "org.florisboard.lib.localai"
+    namespace = "io.github.donatogranvilla.poldokeyboard.localai"
     compileSdk = providers.gradleProperty("projectCompileSdk").get().toInt()
     // Versione locale facoltativa (gradle.properties dell'utente), altrimenti quella di FlorisBoard
     ndkVersion = providers.gradleProperty("poldo.ndkVersion").getOrElse(tools.versions.ndk.get())

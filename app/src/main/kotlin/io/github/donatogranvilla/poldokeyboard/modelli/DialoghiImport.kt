@@ -34,11 +34,11 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import io.github.donatogranvilla.poldokeyboard.R
-import org.florisboard.lib.localai.engine.ArchitetturaModello
-import org.florisboard.lib.localai.model.AnalisiImport
-import org.florisboard.lib.localai.model.FormatoFileModello
-import org.florisboard.lib.localai.model.ModelloPersonalizzato
-import org.florisboard.lib.localai.model.RiconoscitoreFormato
+import io.github.donatogranvilla.poldokeyboard.localai.engine.ArchitetturaModello
+import io.github.donatogranvilla.poldokeyboard.localai.model.AnalisiImport
+import io.github.donatogranvilla.poldokeyboard.localai.model.FormatoFileModello
+import io.github.donatogranvilla.poldokeyboard.localai.model.ModelloPersonalizzato
+import io.github.donatogranvilla.poldokeyboard.localai.model.RiconoscitoreFormato
 import java.text.NumberFormat
 
 /** Le estensioni tolte dal nome del file per proporre il nome del modello. */

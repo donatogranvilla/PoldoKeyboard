@@ -127,7 +127,7 @@ Il modello predefinito lo sceglierà il benchmark sui vocali reali (fase F4 del 
 
 ## Privacy e licenze
 
-- Nessun backend, nessuna API cloud, nessuna telemetria. L'app ha il permesso INTERNET per un solo scopo: scaricare il catalogo dei modelli da `raw.githubusercontent.com` quando tocchi **Aggiorna l'elenco**. I vocali e le trascrizioni non lasciano mai il telefono. Tutto il codice di rete sta in un file, [`ScaricatoreCatalogo.kt`](lib/localai/src/main/kotlin/org/florisboard/lib/localai/model/ScaricatoreCatalogo.kt), e la CI fallisce se classi di rete compaiono altrove.
+- Nessun backend, nessuna API cloud, nessuna telemetria. L'app ha il permesso INTERNET per un solo scopo: scaricare il catalogo dei modelli da `raw.githubusercontent.com` quando tocchi **Aggiorna l'elenco**. I vocali e le trascrizioni non lasciano mai il telefono. Tutto il codice di rete sta in un file, [`ScaricatoreCatalogo.kt`](lib/localai/src/main/kotlin/io/github/donatogranvilla/poldokeyboard/localai/model/ScaricatoreCatalogo.kt), e la CI fallisce se classi di rete compaiono altrove.
 - I vocali condivisi e le trascrizioni restano nella memoria privata dell'app finché non li elimini, e sono esclusi dal backup. Il testo copiato è segnato come sensibile negli appunti.
 - Licenze del codice: whisper.cpp e ggml MIT, sherpa-onnx Apache-2.0 con ONNX Runtime MIT, Apache Commons Compress, AndroidX e Kotlin Apache-2.0. Nessuna dipendenza GPL. I modelli hanno licenze proprie (MIT, Apache-2.0, CC-BY-4.0); i pochi non commerciali sono segnalati nell'app. Dettagli in [`THIRD_PARTY_LICENSES/README.md`](THIRD_PARTY_LICENSES/README.md).
 - Il progetto è nato come fork di FlorisBoard (Apache-2.0); dal branch `modulo-trascrizione` non ne contiene più il codice.

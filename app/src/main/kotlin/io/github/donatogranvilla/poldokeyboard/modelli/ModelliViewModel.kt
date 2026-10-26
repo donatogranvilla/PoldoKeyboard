@@ -12,20 +12,20 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.florisboard.lib.localai.ImpostazioniTrascrizione
-import org.florisboard.lib.localai.LocalAiManager
-import org.florisboard.lib.localai.engine.ArchitetturaModello
-import org.florisboard.lib.localai.engine.ModelloInstallato
-import org.florisboard.lib.localai.model.AggiornamentoCatalogo
-import org.florisboard.lib.localai.model.AnalisiImport
-import org.florisboard.lib.localai.model.EsitoAggiornamentoCatalogo
-import org.florisboard.lib.localai.model.FormatoFileModello
-import org.florisboard.lib.localai.model.FormatoNonSupportatoException
-import org.florisboard.lib.localai.model.ModelCatalog
-import org.florisboard.lib.localai.model.ModelInfo
-import org.florisboard.lib.localai.model.ModelManager
-import org.florisboard.lib.localai.model.ModelloPersonalizzato
-import org.florisboard.lib.localai.sherpa.ModelloIncompletoException
+import io.github.donatogranvilla.poldokeyboard.localai.ImpostazioniTrascrizione
+import io.github.donatogranvilla.poldokeyboard.localai.LocalAiManager
+import io.github.donatogranvilla.poldokeyboard.localai.engine.ArchitetturaModello
+import io.github.donatogranvilla.poldokeyboard.localai.engine.ModelloInstallato
+import io.github.donatogranvilla.poldokeyboard.localai.model.AggiornamentoCatalogo
+import io.github.donatogranvilla.poldokeyboard.localai.model.AnalisiImport
+import io.github.donatogranvilla.poldokeyboard.localai.model.EsitoAggiornamentoCatalogo
+import io.github.donatogranvilla.poldokeyboard.localai.model.FormatoFileModello
+import io.github.donatogranvilla.poldokeyboard.localai.model.FormatoNonSupportatoException
+import io.github.donatogranvilla.poldokeyboard.localai.model.ModelCatalog
+import io.github.donatogranvilla.poldokeyboard.localai.model.ModelInfo
+import io.github.donatogranvilla.poldokeyboard.localai.model.ModelManager
+import io.github.donatogranvilla.poldokeyboard.localai.model.ModelloPersonalizzato
+import io.github.donatogranvilla.poldokeyboard.localai.sherpa.ModelloIncompletoException
 
 /**
  * Un modello installato come lo mostra la schermata dei modelli.

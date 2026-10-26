@@ -19,8 +19,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import kotlinx.coroutines.launch
-import org.florisboard.lib.localai.LocalAiManager
-import org.florisboard.lib.localai.benchmark.BenchmarkSuite
+import io.github.donatogranvilla.poldokeyboard.localai.LocalAiManager
+import io.github.donatogranvilla.poldokeyboard.localai.benchmark.BenchmarkSuite
 
 @Composable
 fun BenchmarkDialog(

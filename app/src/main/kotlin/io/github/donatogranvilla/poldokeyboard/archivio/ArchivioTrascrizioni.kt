@@ -10,7 +10,7 @@ import java.util.concurrent.Callable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
-import org.florisboard.lib.localai.engine.RisultatoTrascrizione
+import io.github.donatogranvilla.poldokeyboard.localai.engine.RisultatoTrascrizione
 
 /**
  * Archivio delle trascrizioni: le righe del database e le copie private dei vocali.

@@ -68,11 +68,11 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import io.github.donatogranvilla.poldokeyboard.R
-import org.florisboard.lib.localai.model.CatalogoNonValidoException
-import org.florisboard.lib.localai.model.ConnessioneNonRiuscitaException
-import org.florisboard.lib.localai.model.EsitoAggiornamentoCatalogo
-import org.florisboard.lib.localai.model.ModelInfo
-import org.florisboard.lib.localai.model.RispostaServerException
+import io.github.donatogranvilla.poldokeyboard.localai.model.CatalogoNonValidoException
+import io.github.donatogranvilla.poldokeyboard.localai.model.ConnessioneNonRiuscitaException
+import io.github.donatogranvilla.poldokeyboard.localai.model.EsitoAggiornamentoCatalogo
+import io.github.donatogranvilla.poldokeyboard.localai.model.ModelInfo
+import io.github.donatogranvilla.poldokeyboard.localai.model.RispostaServerException
 
 /** Ricerca dei modelli Whisper in formato ggml su Hugging Face. */
 private const val URL_RICERCA_HUGGING_FACE = "https://huggingface.co/models?search=whisper%20ggml"

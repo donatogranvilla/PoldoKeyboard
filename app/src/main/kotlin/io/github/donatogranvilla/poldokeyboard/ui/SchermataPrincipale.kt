@@ -60,8 +60,8 @@ import io.github.donatogranvilla.poldokeyboard.comune.tastieraAbilitata
 import io.github.donatogranvilla.poldokeyboard.modelli.ModelliActivity
 import io.github.donatogranvilla.poldokeyboard.servizio.ServizioTrascrizione
 import kotlinx.coroutines.launch
-import org.florisboard.lib.localai.engine.ModelloInstallato
-import org.florisboard.lib.localai.model.ModelManager
+import io.github.donatogranvilla.poldokeyboard.localai.engine.ModelloInstallato
+import io.github.donatogranvilla.poldokeyboard.localai.model.ModelManager
 
 /**
  * Schermata principale: le guide per attivare la tastiera e importare un modello, se mancano,

@@ -8,8 +8,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import io.github.donatogranvilla.poldokeyboard.R
-import org.florisboard.lib.localai.engine.ArchitetturaModello
-import org.florisboard.lib.localai.model.FormatoFileModello
+import io.github.donatogranvilla.poldokeyboard.localai.engine.ArchitetturaModello
+import io.github.donatogranvilla.poldokeyboard.localai.model.FormatoFileModello
 import java.text.Collator
 import java.util.Locale
 

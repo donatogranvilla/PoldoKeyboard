@@ -94,7 +94,7 @@ jstring nuovaStringaUtf8(JNIEnv * env, const std::string & testo) {
  * @return Il nome della libreria caricata, come "libggml-cpu-android_armv8.2_2.so", o null se nessuna si può usare.
  */
 extern "C" JNIEXPORT jstring JNICALL
-Java_org_florisboard_lib_localai_whisper_WhisperNative_caricaVarianteCpu(
+Java_io_github_donatogranvilla_poldokeyboard_localai_whisper_WhisperNative_caricaVarianteCpu(
         JNIEnv * env, jobject /* thiz */) {
     const char * variante = caricaBackendCpu();
     return variante != nullptr ? env->NewStringUTF(variante) : nullptr;
@@ -105,7 +105,7 @@ Java_org_florisboard_lib_localai_whisper_WhisperNative_caricaVarianteCpu(
  * @return Il puntatore al contesto di whisper.cpp, o 0 se il file non è un modello valido o manca il backend CPU.
  */
 extern "C" JNIEXPORT jlong JNICALL
-Java_org_florisboard_lib_localai_whisper_WhisperNative_initContext(
+Java_io_github_donatogranvilla_poldokeyboard_localai_whisper_WhisperNative_initContext(
         JNIEnv * env, jobject /* thiz */, jstring percorsoModello) {
     whisper_log_set(scriviLog, nullptr);
     if (caricaBackendCpu() == nullptr) {
@@ -126,7 +126,7 @@ Java_org_florisboard_lib_localai_whisper_WhisperNative_initContext(
  * Libera la memoria del modello.
  */
 extern "C" JNIEXPORT void JNICALL
-Java_org_florisboard_lib_localai_whisper_WhisperNative_freeContext(
+Java_io_github_donatogranvilla_poldokeyboard_localai_whisper_WhisperNative_freeContext(
         JNIEnv * /* env */, jobject /* thiz */, jlong handle) {
     whisper_free(reinterpret_cast<whisper_context *>(handle));
 }
@@ -136,7 +136,7 @@ Java_org_florisboard_lib_localai_whisper_WhisperNative_freeContext(
  * @return Il codice della lingua, come "it", o null se il modello è solo inglese o il riconoscimento fallisce.
  */
 extern "C" JNIEXPORT jstring JNICALL
-Java_org_florisboard_lib_localai_whisper_WhisperNative_rilevaLingua(
+Java_io_github_donatogranvilla_poldokeyboard_localai_whisper_WhisperNative_rilevaLingua(
         JNIEnv * env, jobject /* thiz */, jlong handle, jfloatArray campioni, jint thread) {
     auto * contesto = reinterpret_cast<whisper_context *>(handle);
     if (contesto == nullptr || !whisper_is_multilingual(contesto)) {
@@ -159,7 +159,7 @@ Java_org_florisboard_lib_localai_whisper_WhisperNative_rilevaLingua(
  * @return Il puntatore al contesto del VAD, o 0 se il file non è valido o manca il backend CPU.
  */
 extern "C" JNIEXPORT jlong JNICALL
-Java_org_florisboard_lib_localai_whisper_WhisperNative_initVad(
+Java_io_github_donatogranvilla_poldokeyboard_localai_whisper_WhisperNative_initVad(
         JNIEnv * env, jobject /* thiz */, jstring percorsoModello) {
     if (caricaBackendCpu() == nullptr) {
         return 0;
@@ -178,7 +178,7 @@ Java_org_florisboard_lib_localai_whisper_WhisperNative_initVad(
  * Libera la memoria del VAD.
  */
 extern "C" JNIEXPORT void JNICALL
-Java_org_florisboard_lib_localai_whisper_WhisperNative_freeVad(
+Java_io_github_donatogranvilla_poldokeyboard_localai_whisper_WhisperNative_freeVad(
         JNIEnv * /* env */, jobject /* thiz */, jlong handle) {
     whisper_vad_free(reinterpret_cast<whisper_vad_context *>(handle));
 }
@@ -189,7 +189,7 @@ Java_org_florisboard_lib_localai_whisper_WhisperNative_freeVad(
  *   null se il rilevamento non riesce.
  */
 extern "C" JNIEXPORT jfloatArray JNICALL
-Java_org_florisboard_lib_localai_whisper_WhisperNative_trovaParlato(
+Java_io_github_donatogranvilla_poldokeyboard_localai_whisper_WhisperNative_trovaParlato(
         JNIEnv * env, jobject /* thiz */, jlong handle, jfloatArray campioni, jfloat soglia,
         jint parlatoMinimoMs, jint silenzioMinimoMs, jfloat parlatoMassimoS, jint margineMs) {
     auto * contesto = reinterpret_cast<whisper_vad_context *>(handle);
@@ -233,7 +233,7 @@ Java_org_florisboard_lib_localai_whisper_WhisperNative_trovaParlato(
  * @return Il testo trascritto, o null se whisper.cpp non è riuscito a elaborare l'audio.
  */
 extern "C" JNIEXPORT jstring JNICALL
-Java_org_florisboard_lib_localai_whisper_WhisperNative_fullTranscribe(
+Java_io_github_donatogranvilla_poldokeyboard_localai_whisper_WhisperNative_fullTranscribe(
         JNIEnv * env, jobject /* thiz */, jlong handle, jfloatArray campioni, jstring lingua,
         jint thread, jboolean traduci, jstring prompt) {
     auto * contesto = reinterpret_cast<whisper_context *>(handle);

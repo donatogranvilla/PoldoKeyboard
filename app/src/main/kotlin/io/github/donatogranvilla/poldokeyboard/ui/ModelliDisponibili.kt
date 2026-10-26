@@ -16,9 +16,9 @@ import io.github.donatogranvilla.poldokeyboard.R
 import io.github.donatogranvilla.poldokeyboard.modelli.descrizioneLingue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.florisboard.lib.localai.engine.ModelloInstallato
-import org.florisboard.lib.localai.model.ModelCatalog
-import org.florisboard.lib.localai.model.ModelManager
+import io.github.donatogranvilla.poldokeyboard.localai.engine.ModelloInstallato
+import io.github.donatogranvilla.poldokeyboard.localai.model.ModelCatalog
+import io.github.donatogranvilla.poldokeyboard.localai.model.ModelManager
 
 /**
  * I modelli installati e quello attivo, per scegliere con quale ritrascrivere un vocale

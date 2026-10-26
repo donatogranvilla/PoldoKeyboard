@@ -29,7 +29,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.florisboard.lib.localai.LocalAiManager
+import io.github.donatogranvilla.poldokeyboard.localai.LocalAiManager
 
 /**
  * Servizio in primo piano che trascrive i vocali in coda nell'archivio, uno alla volta, nel processo
