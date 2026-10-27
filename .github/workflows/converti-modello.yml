@@ -1,0 +1,114 @@
+# Converte un modello NVIDIA NeMo nel formato di sherpa-onnx (ONNX int8) e pubblica l'archivio tra le release del
+# repository, con la sua impronta SHA-256, perché il catalogo dell'app possa puntarci. Parte solo a mano, dalla
+# scheda Actions; non tocca la compilazione dell'app.
+name: Converti un modello
+
+on:
+  workflow_dispatch:
+    inputs:
+      modello:
+        description: Il modello da convertire
+        required: true
+        type: choice
+        options:
+          - parakeet-ultra
+          - canary-1b-v2
+
+permissions:
+  contents: write
+
+jobs:
+  converti:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      USCITA: ${{ github.workspace }}/uscita
+    steps:
+      - uses: actions/checkout@v4
+
+      # Il disco del server ha poco spazio libero: modello originale, PyTorch e file intermedi ne chiedono circa 10 GB
+      - name: Libera spazio sul disco
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          df -h /
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # PyTorch solo per processore: la versione con CUDA pesa diversi GB in più e qui non serve
+      - name: Installa NeMo e gli strumenti ONNX
+        run: |
+          pip install --index-url https://download.pytorch.org/whl/cpu torch torchaudio
+          pip install "nemo_toolkit[asr]" "numpy<2" onnx==1.17.0 onnxruntime==1.17.1 onnxscript safetensors \
+            "huggingface-hub>=1.0" pyyaml
+
+      # Parakeet-ultra è Parakeet TDT 0.6B v3 riaddestrato da Moondream, pubblicato nel formato di transformers:
+      # lo script di leogaudin rinomina i suoi pesi dentro v3 controllando nomi, forme e vocabolario, poi esporta come
+      # lo script di sherpa-onnx per v3. Si usa la revisione letta e controllata, verificata con la sua impronta.
+      - name: Converti Parakeet-ultra
+        if: inputs.modello == 'parakeet-ultra'
+        run: |
+          curl -sSL --fail -o export_ultra.py \
+            https://huggingface.co/leogaudin/sherpa-onnx-nemo-parakeet-ultra-int8/resolve/f7bc472677ff70be95cdb0ef9df509fee6f5ec0b/export_ultra.py
+          echo "bdb071a788ef7a3d65791da40ad2b26c1e65f32fa75f1155c63741370058c2d6  export_ultra.py" | sha256sum -c
+          python export_ultra.py "$USCITA"
+          echo "ARCHIVIO=sherpa-onnx-nemo-parakeet-ultra-int8" >> "$GITHUB_ENV"
+          echo "FILE=encoder.int8.onnx decoder.int8.onnx joiner.int8.onnx tokens.txt" >> "$GITHUB_ENV"
+          echo "ORIGINE=https://huggingface.co/moondream/parakeet-ultra" >> "$GITHUB_ENV"
+
+      - name: Converti Canary-1B-v2
+        if: inputs.modello == 'canary-1b-v2'
+        run: |
+          python .github/conversione/esporta_canary.py nvidia/canary-1b-v2 "$USCITA"
+          echo "ARCHIVIO=sherpa-onnx-nemo-canary-1b-v2-int8" >> "$GITHUB_ENV"
+          echo "FILE=encoder.int8.onnx decoder.int8.onnx tokens.txt" >> "$GITHUB_ENV"
+          echo "ORIGINE=https://huggingface.co/nvidia/canary-1b-v2" >> "$GITHUB_ENV"
+
+      # Prova minima prima di pubblicare: il modello convertito deve trascrivere un audio di esempio
+      - name: Prova con sherpa-onnx
+        run: |
+          pip install sherpa-onnx
+          curl -sSL --fail -o prova.wav https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/de.wav
+          python - <<'EOF'
+          import os, wave, array, sherpa_onnx
+          u = os.environ['USCITA']
+          if os.environ['ARCHIVIO'].startswith('sherpa-onnx-nemo-canary'):
+              r = sherpa_onnx.OfflineRecognizer.from_nemo_canary(
+                  encoder=f'{u}/encoder.int8.onnx', decoder=f'{u}/decoder.int8.onnx', tokens=f'{u}/tokens.txt',
+                  src_lang='de', tgt_lang='de', num_threads=4)
+          else:
+              r = sherpa_onnx.OfflineRecognizer.from_transducer(
+                  encoder=f'{u}/encoder.int8.onnx', decoder=f'{u}/decoder.int8.onnx', joiner=f'{u}/joiner.int8.onnx',
+                  tokens=f'{u}/tokens.txt', model_type='nemo_transducer', num_threads=4)
+          with wave.open('prova.wav') as f:
+              campioni = [c / 32768 for c in array.array('h', f.readframes(f.getnframes()))]
+              frequenza = f.getframerate()
+          s = r.create_stream()
+          s.accept_waveform(frequenza, campioni)
+          r.decode_stream(s)
+          print('Trascrizione di prova:', s.result.text)
+          assert s.result.text.strip(), 'il modello convertito non trascrive nulla'
+          EOF
+
+      - name: Prepara l'archivio
+        run: |
+          mkdir -p "$ARCHIVIO"
+          for f in $FILE; do cp "$USCITA/$f" "$ARCHIVIO/"; done
+          cat > "$ARCHIVIO/README.md" <<EOF
+          Conversione per sherpa-onnx di $ORIGINE (licenza CC-BY-4.0), fatta dal workflow "Converti un modello"
+          del repository ${{ github.repository }}, esecuzione ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}.
+          EOF
+          tar -cjf "$ARCHIVIO.tar.bz2" "$ARCHIVIO"
+          sha256sum "$ARCHIVIO.tar.bz2" | tee "$ARCHIVIO.tar.bz2.sha256"
+          ls -l "$ARCHIVIO.tar.bz2"
+          stat -c %s "$ARCHIVIO.tar.bz2"
+
+      # Tutte le conversioni stanno nella stessa release, "modelli"; un nuovo giro sostituisce il file con lo stesso nome
+      - name: Pubblica nella release "modelli"
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view modelli >/dev/null 2>&1 || gh release create modelli --title "Modelli convertiti" \
+            --notes "Modelli convertiti nel formato di sherpa-onnx dal workflow Converti un modello."
+          gh release upload modelli "$ARCHIVIO.tar.bz2" "$ARCHIVIO.tar.bz2.sha256" --clobber
