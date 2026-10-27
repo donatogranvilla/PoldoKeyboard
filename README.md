@@ -85,6 +85,8 @@ graph TD
 
 Due motori: **whisper.cpp** per i modelli Whisper in formato GGML, un solo file `ggml-*.bin`, e **sherpa-onnx** per Parakeet, GigaAM, Moonshine, Omnilingual e gli altri modelli ONNX, un archivio `.tar.bz2` con più file. L'app sceglie il motore in base al modello e ne tiene in memoria uno solo.
 
+Quale scegliere per l'italiano? Su 101 vocali veri **Whisper large-v3-turbo** sbaglia l'11,7% delle parole e **Parakeet TDT 0.6B v3**, più veloce, il 14,8%: la classifica completa e il metodo sono in [Quale modello trascrive meglio i vocali italiani?](docs/prova-dei-modelli.md).
+
 La schermata **Modelli** si apre dall'app e dalla tastiera di trascrizione:
 
 - **Catalogo** di 35 modelli per 14 lingue, filtrabile per lingua: prima gli specializzati, poi i multilingue. Ogni scheda indica lingue, accuratezza, velocità, peso, RAM consigliata, file da scaricare, licenza e pagina del modello. Il catalogo è un file di dati, `lib/localai/src/main/resources/catalogo_modelli.json`.
