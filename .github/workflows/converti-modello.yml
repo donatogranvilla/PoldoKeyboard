@@ -93,6 +93,8 @@ jobs:
           r.decode_stream(s)
           print('Trascrizione di prova:', s.result.text)
           assert s.result.text.strip(), 'il modello convertito non trascrive nulla'
+          # Parole tutte attaccate: il file dei token ha perso il segno di inizio parola
+          assert ' ' in s.result.text.strip(), 'il testo trascritto non ha spazi tra le parole'
           EOF
 
       - name: Prepara l'archivio

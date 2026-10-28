@@ -137,12 +137,11 @@ def esporta_decoder(modello, uscita: Path, numero_memorie: int, dimensione: int)
 
 
 def esporta_token(modello, uscita: Path):
+    # I pezzi così come sono nel vocabolario, con il ▁ che segna l'inizio di una parola: ids_to_text del tokenizer di
+    # canary-1b-v2 toglie lo spazio iniziale, e sherpa-onnx scriverebbe le parole tutte attaccate
     with open(uscita / 'tokens.txt', 'w', encoding='utf-8') as file:
         for i in range(modello.tokenizer.vocab_size):
-            testo = modello.tokenizer.ids_to_text([i])
-            if testo.startswith(' '):
-                testo = '▁' + testo[1:]
-            file.write(f'{testo} {i}\n')
+            file.write(f'{modello.tokenizer.ids_to_tokens([i])[0]} {i}\n')
 
 
 @torch.no_grad()
