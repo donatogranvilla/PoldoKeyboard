@@ -95,7 +95,7 @@ class Decoder(torch.nn.Module):
 def esporta_encoder(modello, uscita: Path):
     x = torch.rand(1, 4000, 128)
     torch.onnx.export(
-        Encoder(modello), (x, torch.tensor([x.shape[1]], dtype=torch.int64)), str(uscita / 'encoder.onnx'),
+        Encoder(modello).eval(), (x, torch.tensor([x.shape[1]], dtype=torch.int64)), str(uscita / 'encoder.onnx'),
         input_names=['x', 'x_len'], output_names=['enc_states', 'enc_len', 'enc_mask'], opset_version=14,
         dynamic_axes={'x': {0: 'N', 1: 'T'}, 'x_len': {0: 'N'}, 'enc_states': {0: 'N', 1: 'T'},
                       'enc_len': {0: 'N'}, 'enc_mask': {0: 'N', 1: 'T'}},
@@ -111,7 +111,7 @@ def esporta_decoder(modello, uscita: Path, numero_memorie: int, dimensione: int)
         torch.ones(1, 1000).bool(),
     )
     torch.onnx.export(
-        Decoder(modello), argomenti, str(uscita / 'decoder.onnx'), dynamo=True, opset_version=14,
+        Decoder(modello).eval(), argomenti, str(uscita / 'decoder.onnx'), dynamo=True, opset_version=14,
         external_data=False,
         input_names=['decoder_input_ids', *memorie, 'enc_states', 'enc_mask'],
         output_names=['logits', *[f'next_decoder_mem_list_{i}' for i in range(numero_memorie)]],
@@ -142,8 +142,10 @@ def principale():
     assert pre['window_size'] == 0.025 and pre['window_stride'] == 0.01 and pre['n_fft'] == 512
     assert pre['features'] == 128 and modello.cfg['encoder']['subsampling_factor'] == 8
 
-    # Le memorie sono l'ingresso del primo strato più l'uscita di ogni strato
-    numero_memorie = len(modello.transf_decoder.decoder.layers) + 1
+    # Le memorie sono l'ingresso del primo strato, l'uscita di ogni strato e, se c'è, quella della normalizzazione
+    # finale (TransformerDecoder.forward di NeMo): 6 per canary-180m-flash, che ha 4 strati
+    decoder = modello.transf_decoder.decoder
+    numero_memorie = len(decoder.layers) + (2 if decoder.final_layer_norm is not None else 1)
     dimensione = modello.transf_decoder.embedding.token_embedding.embedding_dim
     print(f'{nome}: {numero_memorie} memorie del decoder da {dimensione}', flush=True)
 
@@ -167,10 +169,11 @@ def principale():
         'num_decoder_layers': numero_memorie,
         'decoder_hidden_size': dimensione,
     }
-    for file in ('encoder.onnx', 'encoder.int8.onnx'):
-        aggiungi_metadati(uscita / file, metadati)
+    # Si ritoccano solo i file int8, quelli che si pubblicano: l'encoder a 32 bit di un modello da 1 miliardo supera i
+    # 2 GB e onnx non lo salverebbe in un solo file
+    aggiungi_metadati(uscita / 'encoder.int8.onnx', metadati)
     # onnxruntime 1.17 legge al massimo la versione 9 del formato
-    for file in ('decoder.onnx', 'decoder.int8.onnx'):
+    for file in ('encoder.int8.onnx', 'decoder.int8.onnx'):
         modello_onnx = onnx.load(str(uscita / file))
         modello_onnx.ir_version = 9
         onnx.save(modello_onnx, str(uscita / file))
