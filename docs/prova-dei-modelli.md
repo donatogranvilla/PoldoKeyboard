@@ -2,7 +2,7 @@
 
 Abbiamo messo alla prova i modelli del catalogo di PoldoKeyboard su **101 vocali veri di WhatsApp in italiano**: 78 minuti di audio, circa 11.000 parole, da 6 secondi a oltre 3 minuti l'uno, con persone, accenti, rumori di fondo e modi di parlare diversi. Niente frasi lette in studio: messaggi come quelli che arrivano ogni giorno, con pause, intercalari, parolacce e frasi lasciate a metà.
 
-*In English: we measured the word error rate (WER) of every Italian-capable model in the PoldoKeyboard catalog on 101 real Italian WhatsApp voice notes (78 minutes, ~11,000 words), with the same settings the app uses. Whisper large-v3-turbo is the best choice for a phone (11.7% WER), Parakeet TDT 0.6B v3 the fastest acceptable one (14.8%). The audio and transcripts are private and are not published.*
+*In English: we measured the word error rate (WER) of every Italian-capable model in the PoldoKeyboard catalog on 101 real Italian WhatsApp voice notes (78 minutes, ~11,000 words), with the same settings the app uses. Whisper large-v3-turbo is the best choice for a phone (11.7% WER), Parakeet Ultra 0.6B (Parakeet TDT 0.6B v3 further trained by Moondream) the fastest good one (12.8%, against 14.8% for v3). The audio and transcripts are private and are not published.*
 
 ## Il risultato
 
@@ -13,6 +13,7 @@ Il numero è il **WER** (*word error rate*): su 100 parole dette, quante il mode
 | Whisper large-v3 | whisper.cpp | 1081 MB | **9,3%** |
 | Whisper large-v3-turbo | whisper.cpp | 574 MB | **11,7%** |
 | Whisper large-v3 distil italiano v0.2 | whisper.cpp | 538 MB | **12,5%** |
+| Parakeet Ultra 0.6B | sherpa-onnx | 487 MB | **12,8%** |
 | Whisper large-v3 italiano (YODAS) | whisper.cpp | 1081 MB | 13,0% |
 | Parakeet TDT 0.6B v3 | sherpa-onnx | 487 MB | 14,8% |
 | Whisper large-v3-turbo italiano (YODAS) | whisper.cpp | 574 MB | 14,9% |
@@ -27,7 +28,7 @@ Il numero è il **WER** (*word error rate*): su 100 parole dette, quante il mode
 ## Cosa scegliere
 
 - **Il migliore per il telefono: Whisper large-v3-turbo.** Sbaglia poco più di una parola su dieci, la metà dei vocali ha un errore sotto il 10%, e pesa la metà di large-v3.
-- **Il più veloce tra quelli buoni: Parakeet TDT 0.6B v3.** Sbaglia circa tre parole in più ogni cento, ma trascrive molto più in fretta.
+- **Il più veloce tra quelli buoni: Parakeet Ultra 0.6B.** È Parakeet TDT 0.6B v3 riaddestrato da Moondream: sbaglia circa una parola in più ogni cento rispetto a large-v3-turbo, ma trascrive molto più in fretta. Rispetto a Parakeet v3 è più preciso in 69 vocali su 101, con la stessa velocità.
 - **large-v3** è il più preciso, ma su un telefono è lento: ha senso solo se non hai fretta.
 - **I modelli addestrati apposta sull'italiano non battono gli originali.** Sono stati addestrati soprattutto su audio di YouTube, che somiglia poco a un vocale registrato col telefono in mano. Il distil italiano resta una buona alternativa, un po' più leggera.
 - **Per l'italiano parlato lascia perdere** small, base, tiny, NeMo FastConformer e Omnilingual: sbagliano da una parola su quattro in su. Omnilingual 1B è anche il più lento di tutti.
@@ -36,7 +37,7 @@ Il numero è il **WER** (*word error rate*): su 100 parole dette, quante il mode
 
 1. **I vocali.** 101 messaggi vocali ricevuti su WhatsApp e condivisi con l'app.
 2. **Il testo giusto.** Per ogni vocale serve la trascrizione esatta, parola per parola. L'abbiamo costruita così: tre modelli diversi (Whisper large-v3, Whisper turbo italiano e Parakeet) hanno trascritto ogni vocale; dove almeno due concordavano, la parola è stata presa per buona; i 393 punti in cui non c'era accordo sono stati riascoltati e corretti a orecchio da una persona, con l'audio del punto esatto a fianco. Alcuni pezzi davvero incomprensibili sono stati esclusi dal conteggio.
-3. **Le stesse condizioni dell'app.** Ogni modello ha trascritto l'audio con le impostazioni che usa PoldoKeyboard: lo stesso rilevatore del parlato (Silero VAD) con gli stessi parametri, gli stessi blocchi di audio, e per Whisper la ricerca a fascio con 5 ipotesi e la frase di contesto per la punteggiatura. Per velocità le prove sono girate su un PC, con gli stessi motori dell'app (whisper.cpp e sherpa-onnx). Parakeet è stato provato anche sul telefono: 14,8% contro 15,4% sul PC, quindi i risultati del PC valgono anche per il telefono.
+3. **Le stesse condizioni dell'app.** Ogni modello ha trascritto l'audio con le impostazioni che usa PoldoKeyboard: lo stesso rilevatore del parlato (Silero VAD) con gli stessi parametri, gli stessi blocchi di audio, e per Whisper la ricerca a fascio con 5 ipotesi e la frase di contesto per la punteggiatura. Per velocità le prove sono girate su un PC, con gli stessi motori dell'app (whisper.cpp e sherpa-onnx). Parakeet v3 è stato provato anche sul telefono: 14,8% contro 15,4% sul PC, quindi i risultati del PC valgono anche per il telefono. Parakeet Ultra è misurato sul PC, alle stesse condizioni in cui Parakeet v3 fa il 15,4%.
 4. **Il confronto.** Maiuscole, punteggiatura, accenti gravi o acuti e numeri in cifre o in lettere non contano come errori: conta solo se la parola è quella giusta.
 
 ## I limiti di questa prova

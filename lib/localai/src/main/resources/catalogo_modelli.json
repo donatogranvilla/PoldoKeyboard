@@ -155,6 +155,35 @@
     "quantizzazione": "int8"
   },
   {
+    "id": "parakeet-ultra-0.6b-int8",
+    "name": "Parakeet Ultra 0.6B (int8)",
+    "tipoMotore": "SHERPA_ONNX",
+    "architettura": "NEMO_TRANSDUCER",
+    "lingue": [
+      "it",
+      "en",
+      "es",
+      "fr",
+      "de",
+      "pt",
+      "ru",
+      "hr",
+      "sl",
+      "el"
+    ],
+    "sizeBytes": 486527307,
+    "sha256": "8ece3fd2382aee3f01c6ec35ae6a01cf7d0cbf1cb2d1f9691ad7633851e9fd20",
+    "downloadUrl": "https://github.com/donatogranvilla/PoldoKeyboard/releases/download/modelli/sherpa-onnx-nemo-parakeet-ultra-int8.tar.bz2",
+    "paginaUrl": "https://huggingface.co/moondream/parakeet-ultra",
+    "license": "CC-BY-4.0",
+    "qualityLevel": "Molto alta",
+    "description": "Parakeet TDT 0.6B v3 riaddestrato da Moondream: stesse lingue, stessa velocità, punteggiatura e maiuscole, ma più preciso. Sui vocali italiani veri sbaglia il 12,8% delle parole, contro il 14,8% di Parakeet v3, vicino a Large v3 Turbo (11,7%) e molto più veloce. Il file è convertito per sherpa-onnx dal repository di PoldoKeyboard.",
+    "ramConsigliataMb": 1000,
+    "stelleAccuratezza": 4,
+    "fulminiVelocita": 4,
+    "quantizzazione": "int8"
+  },
+  {
     "id": "nemo-fastconformer-multi-20k-int8",
     "name": "NeMo FastConformer multilingue (int8)",
     "tipoMotore": "SHERPA_ONNX",

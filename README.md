@@ -11,7 +11,7 @@ Sotto il cofano lavorano gli stessi modelli di riconoscimento vocale (*speech-to
 - 🔒 **Privacy vera.** L'audio e le trascrizioni non lasciano mai il telefono. Niente account, niente pubblicità, niente telemetria.
 - 📴 **Funziona offline.** Una volta scaricato il modello, trascrive anche in aereo o in montagna.
 - ⌨️ **Una tastiera che fa una cosa sola.** Non sostituisce la tua tastiera (SwiftKey, Gboard o altre): ci passi un attimo, tocchi la trascrizione, **Inserisci**, e torni a scrivere come prima.
-- 🧠 **Il modello lo scegli tu.** 35 modelli per 14 lingue, compresi alcuni specializzati in italiano. Se un testo non ti convince, **Ritrascrivi con…** un modello più grande.
+- 🧠 **Il modello lo scegli tu.** 36 modelli per 14 lingue, compresi alcuni specializzati in italiano. Se un testo non ti convince, **Ritrascrivi con…** un modello più grande.
 - 🤫 **Niente frasi inventate sul silenzio.** Prima di trascrivere, un rilevatore del parlato (Silero VAD) toglie silenzi e rumore, dove i modelli tendono ad avere le allucinazioni.
 - 📚 **Lavora in background**, anche a schermo spento e con più vocali in coda.
 
@@ -85,11 +85,11 @@ graph TD
 
 Due motori: **whisper.cpp** per i modelli Whisper in formato GGML, un solo file `ggml-*.bin`, e **sherpa-onnx** per Parakeet, GigaAM, Moonshine, Omnilingual e gli altri modelli ONNX, un archivio `.tar.bz2` con più file. L'app sceglie il motore in base al modello e ne tiene in memoria uno solo.
 
-Quale scegliere per l'italiano? Su 101 vocali veri **Whisper large-v3-turbo** sbaglia l'11,7% delle parole e **Parakeet TDT 0.6B v3**, più veloce, il 14,8%: la classifica completa e il metodo sono in [Quale modello trascrive meglio i vocali italiani?](docs/prova-dei-modelli.md).
+Quale scegliere per l'italiano? Su 101 vocali veri **Whisper large-v3-turbo** sbaglia l'11,7% delle parole e **Parakeet Ultra 0.6B**, molto più veloce, il 12,8%: la classifica completa e il metodo sono in [Quale modello trascrive meglio i vocali italiani?](docs/prova-dei-modelli.md).
 
 La schermata **Modelli** si apre dall'app e dalla tastiera di trascrizione:
 
-- **Catalogo** di 35 modelli per 14 lingue, filtrabile per lingua: prima gli specializzati, poi i multilingue. Ogni scheda indica lingue, accuratezza, velocità, peso, RAM consigliata, file da scaricare, licenza e pagina del modello. Il catalogo è un file di dati, `lib/localai/src/main/resources/catalogo_modelli.json`.
+- **Catalogo** di 36 modelli per 14 lingue, filtrabile per lingua: prima gli specializzati, poi i multilingue. Ogni scheda indica lingue, accuratezza, velocità, peso, RAM consigliata, file da scaricare, licenza e pagina del modello. Il catalogo è un file di dati, `lib/localai/src/main/resources/catalogo_modelli.json`.
 - **Aggiorna l'elenco** scarica da GitHub, solo quando lo tocchi, il catalogo pubblicato in questo repository: così i modelli nuovi arrivano senza aggiornare l'app. Le voci che una versione vecchia dell'app non sa leggere si saltano, e dopo un aggiornamento dell'app vale di nuovo il catalogo incluso.
 - **Scarica** apre il file nel browser; **Importa** lo installa dal selettore di sistema. Il file si riconosce dall'impronta SHA-256 e dai primi byte. I modelli del catalogo si installano da soli; per gli altri l'app chiede nome, lingue e tipo. Per i formati che non vanno (GGUF, safetensors, PyTorch, un ONNX singolo) spiega cosa scaricare al loro posto.
 - **Lingua dei vocali**: i modelli specializzati usano sempre la loro lingua; per i multilingue si sceglie una lingua fissa oppure il riconoscimento automatico.
