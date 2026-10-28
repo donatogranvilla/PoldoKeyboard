@@ -106,7 +106,9 @@ def esporta_encoder(modello, uscita: Path):
 def esporta_decoder(modello, uscita: Path, numero_memorie: int, dimensione: int):
     Decoder, memorie = classe_decoder(numero_memorie)
     argomenti = (
-        torch.tensor([[1, 0]], dtype=torch.int32),
+        # Due token più la posizione: con un solo token torch.export fisserebbe la lunghezza a 1 (le dimensioni 0 e 1
+        # sono sempre trattate come costanti) e il decoder non accetterebbe più sequenze di lunghezza diversa
+        torch.tensor([[1, 2, 0]], dtype=torch.int32),
         *[torch.zeros(1, 10, dimensione) for _ in memorie],
         torch.zeros(1, 1000, dimensione),
         torch.ones(1, 1000).bool(),
