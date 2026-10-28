@@ -83,7 +83,8 @@ class Decoder(torch.nn.Module):
         decoder_input_ids = decoder_input_ids[:, :-1]
         stati = self.decoder.embedding.forward(decoder_input_ids, start_pos=pos)
         maschera = torch.ones_like(decoder_input_ids).float()
-        memorie = self.decoder.decoder.forward(
+        # Le versioni recenti di NeMo restituiscono anche i punteggi di attenzione, che qui non servono
+        memorie, _ = self.decoder.decoder.forward(
             stati, maschera, enc_states, enc_mask, [{", ".join(memorie)}], return_mems=True)
         return self.log_softmax(hidden_states=memorie[-1][:, -1:]), memorie
 '''
