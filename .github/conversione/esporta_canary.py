@@ -82,13 +82,26 @@ class Decoder(torch.nn.Module):
         pos = decoder_input_ids[0][-1].item()
         decoder_input_ids = decoder_input_ids[:, :-1]
         stati = self.decoder.embedding.forward(decoder_input_ids, start_pos=pos)
-        maschera = torch.ones_like(decoder_input_ids).float()
-        # Le versioni recenti di NeMo restituiscono anche i punteggi di attenzione, che qui non servono
-        memorie, _ = self.decoder.decoder.forward(
-            stati, maschera, enc_states, enc_mask, [{", ".join(memorie)}], return_mems=True)
-        return self.log_softmax(hidden_states=memorie[-1][:, -1:]), memorie
+        precedenti = [{", ".join(memorie)}]
+        # Il ciclo di TransformerDecoder.forward di NeMo, con la maschera causale calcolata sui token nuovi (righe)
+        # contro memorie più token nuovi (colonne): quella di NeMo è quadrata sui soli token nuovi e vale solo con un
+        # token o senza memorie, casi che l'esportazione non sa distinguere
+        n, m = stati.shape[1], precedenti[0].shape[1]
+        futuro = torch.arange(m + n).unsqueeze(0) > (torch.arange(n).unsqueeze(1) + m)
+        maschera = (futuro.float() * NEG_INF).unsqueeze(0).unsqueeze(0)
+        maschera_encoder = maschera_attenzione(enc_mask)
+        decoder = self.decoder.decoder
+        memoria = torch.cat((precedenti[0], stati), dim=1)
+        uscite = [memoria]
+        for i, strato in enumerate(decoder.layers):
+            stati, _ = strato(stati, maschera, memoria, enc_states, maschera_encoder)
+            memoria = torch.cat((precedenti[i + 1], stati), dim=1)
+            uscite.append(memoria)
+        if decoder.final_layer_norm is not None:
+            uscite.append(torch.cat((precedenti[-1], decoder.final_layer_norm(stati)), dim=1))
+        return self.log_softmax(hidden_states=uscite[-1][:, -1:]), uscite
 '''
-    spazio = {'torch': torch}
+    spazio = {'torch': torch, 'NEG_INF': NEG_INF, 'maschera_attenzione': maschera_attenzione}
     exec(codice, spazio)
     return spazio['Decoder'], memorie
 
