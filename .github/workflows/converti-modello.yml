@@ -36,12 +36,16 @@ jobs:
         with:
           python-version: '3.11'
 
-      # PyTorch solo per processore: la versione con CUDA pesa diversi GB in più e qui non serve
+      # PyTorch solo per processore: la versione con CUDA pesa diversi GB in più e qui non serve.
+      # onnx 1.17 e onnxruntime 1.17, come negli script di sherpa-onnx, vogliono NumPy 1; pyarrow dalla 20 in poi
+      # vuole NumPy 2, e NeMo lo importa tramite datasets: si resta su una versione che va con NumPy 1
       - name: Installa NeMo e gli strumenti ONNX
         run: |
           pip install --index-url https://download.pytorch.org/whl/cpu torch torchaudio
-          pip install "nemo_toolkit[asr]" "numpy<2" onnx==1.17.0 onnxruntime==1.17.1 onnxscript safetensors \
-            "huggingface-hub>=1.0" pyyaml
+          pip install "nemo_toolkit[asr]" "numpy<2" "pyarrow<20" onnx==1.17.0 onnxruntime==1.17.1 onnxscript \
+            safetensors "huggingface-hub>=1.0" pyyaml
+          python -c "import numpy, pyarrow, datasets; print('numpy', numpy.__version__, 'pyarrow', pyarrow.__version__, 'datasets', datasets.__version__)"
+          python -c "import nemo.collections.asr"
 
       # Parakeet-ultra è Parakeet TDT 0.6B v3 riaddestrato da Moondream, pubblicato nel formato di transformers:
       # lo script di leogaudin rinomina i suoi pesi dentro v3 controllando nomi, forme e vocabolario, poi esporta come
