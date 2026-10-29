@@ -109,6 +109,14 @@
     <string name="modello_non_verificato">Fuori catalogo: l\'app non ha potuto verificare il file.</string>
     <string name="modello_qualita">Accuratezza %1$s · Velocità %2$s</string>
     <string name="modello_peso">Download %1$s · RAM consigliata %2$s</string>
+    <string name="modello_riassunto_catalogo">Accuratezza %1$d/5 · Velocità %2$d/5 · %3$s</string>
+    <string name="modello_riassunto_installato">%1$s · %2$s</string>
+    <string name="modelli_meno_precisi">Meno precisi</string>
+    <string name="modelli_meno_precisi_spiegazione">Leggeri, ma sbagliano molte parole, almeno in italiano. Hanno senso solo su telefoni con poca memoria.</string>
+    <string name="azione_mostra_dettagli">Mostra i dettagli</string>
+    <string name="azione_nascondi_dettagli">Nascondi i dettagli</string>
+    <string name="azione_apri_sezione">Apri la sezione</string>
+    <string name="azione_chiudi_sezione">Chiudi la sezione</string>
     <string name="modello_file">File: %1$s · quantizzazione %2$s</string>
     <string name="modello_file_semplice">File: %1$s</string>
     <string name="modello_licenza">Licenza: %1$s</string>

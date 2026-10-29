@@ -111,6 +111,14 @@
     <string name="modello_non_verificato">Not in the catalog: the app couldn\'t verify the file.</string>
     <string name="modello_qualita">Accuracy %1$s · Speed %2$s</string>
     <string name="modello_peso">Download %1$s · Recommended RAM %2$s</string>
+    <string name="modello_riassunto_catalogo">Accuracy %1$d/5 · Speed %2$d/5 · %3$s</string>
+    <string name="modello_riassunto_installato">%1$s · %2$s</string>
+    <string name="modelli_meno_precisi">Less accurate</string>
+    <string name="modelli_meno_precisi_spiegazione">Light, but they get many words wrong, at least in Italian. They only make sense on phones with little memory.</string>
+    <string name="azione_mostra_dettagli">Show details</string>
+    <string name="azione_nascondi_dettagli">Hide details</string>
+    <string name="azione_apri_sezione">Open section</string>
+    <string name="azione_chiudi_sezione">Close section</string>
     <string name="modello_file">File: %1$s · quantization %2$s</string>
     <string name="modello_file_semplice">File: %1$s</string>
     <string name="modello_licenza">License: %1$s</string>

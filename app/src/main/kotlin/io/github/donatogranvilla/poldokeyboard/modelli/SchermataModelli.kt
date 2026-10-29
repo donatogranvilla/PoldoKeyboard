@@ -7,9 +7,16 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
@@ -21,10 +28,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -62,6 +72,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -94,9 +107,24 @@ fun SchermataModelli(viewModel: ModelliViewModel, onIndietro: () -> Unit) {
     val selettore = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) viewModel.importa(uri)
     }
-    val installati = viewModel.installatiFiltrati
-    val daScaricare = viewModel.daScaricare
+    // La riga aperta, una sola alla volta, e le sezioni aperte
+    var rigaAperta by rememberSaveable { mutableStateOf<String?>(null) }
+    var installatiAperti by rememberSaveable { mutableStateOf(true) }
+    var catalogoAperto by rememberSaveable { mutableStateOf(true) }
+    var menoPrecisiAperti by rememberSaveable { mutableStateOf(false) }
+    val apriChiudi = { chiave: String -> rigaAperta = if (rigaAperta == chiave) null else chiave }
+    // Gli elenchi si ricalcolano solo quando cambiano modelli o filtro, non a ogni ricomposizione
+    val installati = remember(viewModel.installati, viewModel.filtroLingua) { viewModel.installatiFiltrati }
+    val (daScaricare, menoPrecisi) = remember(viewModel.catalogo, viewModel.installati, viewModel.filtroLingua) {
+        viewModel.daScaricare.partition { !it.menoPreciso }
+    }
     val profilo = viewModel.profilo
+    val apri: (String) -> Unit = { indirizzo -> apriNelBrowser(context, indirizzo) }
+    val scarica: (ModelInfo) -> Unit = { modello ->
+        if (apriNelBrowser(context, modello.downloadUrl)) {
+            Toast.makeText(context, R.string.download_avviato, Toast.LENGTH_LONG).show()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -126,56 +154,110 @@ fun SchermataModelli(viewModel: ModelliViewModel, onIndietro: () -> Unit) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(margini),
-            // Lo spazio in fondo evita che il pulsante Importa copra l'ultima scheda
+            // Lo spazio in fondo evita che il pulsante Importa copra l'ultima riga. Le righe di un gruppo stanno a
+            // 2 dp l'una dall'altra, come le notifiche; il resto ha il suo margine sopra
             contentPadding = PaddingValues(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 96.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
-            item { GuidaModelli(onApri = { indirizzo -> apriNelBrowser(context, indirizzo) }) }
-            item { SchedaLinguaVocali(lingua = viewModel.linguaVocali, onCambia = { sceltaLingua = true }) }
-            item { FiltroLingue(selezionata = viewModel.filtroLingua, onSeleziona = viewModel::filtra) }
-
-            item { TitoloSezione(stringResource(R.string.modelli_sezione_installati)) }
-            if (installati.isEmpty()) {
-                item {
-                    val messaggio = if (viewModel.filtroLingua == null) {
-                        R.string.modelli_nessuno_installato
-                    } else {
-                        R.string.modelli_nessuno_per_lingua
-                    }
-                    TestoNota(stringResource(messaggio))
-                }
-            }
-            items(installati, key = { "installato-${it.modello.id}" }) { voce ->
-                SchedaModelloInstallato(
-                    voce = voce,
-                    attivo = voce.modello.id == viewModel.idAttivo,
-                    onUsa = { viewModel.attiva(voce.modello.id) },
-                    onElimina = { daEliminare = voce },
-                )
-            }
-
+            item { GuidaModelli(onApri = apri) }
             item {
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    TitoloSezione(stringResource(R.string.modelli_sezione_da_scaricare))
-                    TestoNota(stringResource(R.string.modelli_da_scaricare_spiegazione))
-                    TestoNota(stringResource(R.string.modelli_dispositivo, (profilo.ramTotaleMb + 512) / 1024, profilo.numCoreCpu))
-                    AggiornamentoElenco(stato = viewModel.statoCatalogo, onAggiorna = viewModel::aggiornaCatalogo)
+                SchedaLinguaVocali(
+                    lingua = viewModel.linguaVocali,
+                    onCambia = { sceltaLingua = true },
+                    modifier = Modifier.padding(top = 10.dp),
+                )
+            }
+            item {
+                FiltroLingue(
+                    selezionata = viewModel.filtroLingua,
+                    onSeleziona = viewModel::filtra,
+                    modifier = Modifier.padding(top = 10.dp),
+                )
+            }
+
+            item(key = "sezione-installati") {
+                IntestazioneSezione(
+                    titolo = stringResource(R.string.modelli_sezione_installati),
+                    quanti = installati.size,
+                    aperta = installatiAperti,
+                    onApriChiudi = { installatiAperti = !installatiAperti },
+                )
+            }
+            if (installatiAperti) {
+                if (installati.isEmpty()) {
+                    item {
+                        val messaggio = if (viewModel.filtroLingua == null) {
+                            R.string.modelli_nessuno_installato
+                        } else {
+                            R.string.modelli_nessuno_per_lingua
+                        }
+                        TestoNota(stringResource(messaggio))
+                    }
+                }
+                itemsIndexed(installati, key = { _, voce -> "installato-${voce.modello.id}" }) { indice, voce ->
+                    val chiave = "installato-${voce.modello.id}"
+                    RigaModelloInstallato(
+                        voce = voce,
+                        attivo = voce.modello.id == viewModel.idAttivo,
+                        forma = formaNelGruppo(indice, installati.size),
+                        aperta = rigaAperta == chiave,
+                        onApriChiudi = { apriChiudi(chiave) },
+                        onUsa = { viewModel.attiva(voce.modello.id) },
+                        onElimina = { daEliminare = voce },
+                    )
                 }
             }
-            if (daScaricare.isEmpty()) {
-                item { TestoNota(stringResource(R.string.modelli_tutti_scaricati)) }
-            }
-            items(daScaricare, key = { "catalogo-${it.id}" }) { modello ->
-                SchedaModelloCatalogo(
-                    modello = modello,
-                    consigliato = modello.id == profilo.idModelloConsigliato,
-                    onScarica = {
-                        if (apriNelBrowser(context, modello.downloadUrl)) {
-                            Toast.makeText(context, R.string.download_avviato, Toast.LENGTH_LONG).show()
-                        }
-                    },
-                    onApri = { indirizzo -> apriNelBrowser(context, indirizzo) },
+
+            item(key = "sezione-catalogo") {
+                IntestazioneSezione(
+                    titolo = stringResource(R.string.modelli_sezione_da_scaricare),
+                    quanti = daScaricare.size + menoPrecisi.size,
+                    aperta = catalogoAperto,
+                    onApriChiudi = { catalogoAperto = !catalogoAperto },
                 )
+            }
+            if (catalogoAperto) {
+                item {
+                    Column(modifier = Modifier.padding(bottom = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        TestoNota(stringResource(R.string.modelli_da_scaricare_spiegazione))
+                        val ramGb = (profilo.ramTotaleMb + 512) / 1024
+                        TestoNota(stringResource(R.string.modelli_dispositivo, ramGb, profilo.numCoreCpu))
+                        AggiornamentoElenco(stato = viewModel.statoCatalogo, onAggiorna = viewModel::aggiornaCatalogo)
+                    }
+                }
+                if (daScaricare.isEmpty() && menoPrecisi.isEmpty()) {
+                    item { TestoNota(stringResource(R.string.modelli_tutti_scaricati)) }
+                }
+                gruppoCatalogo(
+                    modelli = daScaricare,
+                    idConsigliato = profilo.idModelloConsigliato,
+                    rigaAperta = rigaAperta,
+                    onApriChiudi = apriChiudi,
+                    onScarica = scarica,
+                    onApri = apri,
+                )
+                if (menoPrecisi.isNotEmpty()) {
+                    item(key = "sezione-meno-precisi") {
+                        IntestazioneSezione(
+                            titolo = stringResource(R.string.modelli_meno_precisi),
+                            quanti = menoPrecisi.size,
+                            aperta = menoPrecisiAperti,
+                            onApriChiudi = { menoPrecisiAperti = !menoPrecisiAperti },
+                            secondaria = true,
+                        )
+                    }
+                    if (menoPrecisiAperti) {
+                        item { TestoNota(stringResource(R.string.modelli_meno_precisi_spiegazione)) }
+                        gruppoCatalogo(
+                            modelli = menoPrecisi,
+                            idConsigliato = profilo.idModelloConsigliato,
+                            rigaAperta = rigaAperta,
+                            onApriChiudi = apriChiudi,
+                            onScarica = scarica,
+                            onApri = apri,
+                        )
+                    }
+                }
             }
         }
     }
@@ -319,8 +401,8 @@ private fun ParagrafoGuida(@StringRes titolo: Int, @StringRes testo: Int) {
  * La lingua imposta ai modelli multilingue, con il pulsante per cambiarla.
  */
 @Composable
-private fun SchedaLinguaVocali(lingua: String?, onCambia: () -> Unit) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+private fun SchedaLinguaVocali(lingua: String?, onCambia: () -> Unit, modifier: Modifier = Modifier) {
+    Card(modifier = modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(modifier = Modifier.weight(1f)) {
@@ -344,9 +426,9 @@ private fun SchedaLinguaVocali(lingua: String?, onCambia: () -> Unit) {
  * I filtri per lingua, scorrevoli in orizzontale: "Tutte" e le lingue dei vocali.
  */
 @Composable
-private fun FiltroLingue(selezionata: String?, onSeleziona: (String?) -> Unit) {
+private fun FiltroLingue(selezionata: String?, onSeleziona: (String?) -> Unit, modifier: Modifier = Modifier) {
     val lingue = lingueOrdinate()
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(text = stringResource(R.string.modelli_filtro_titolo), style = MaterialTheme.typography.titleSmall)
         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             item {
@@ -367,50 +449,175 @@ private fun FiltroLingue(selezionata: String?, onSeleziona: (String?) -> Unit) {
     }
 }
 
+/** Raggio degli angoli esterni di un gruppo di righe, e di quelli fra una riga e l'altra. */
+private val ANGOLO_GRUPPO = 20.dp
+private val ANGOLO_INTERNO = 4.dp
+
+/** Le stelle di accuratezza sotto le quali un modello generico finisce fra i meno precisi. */
+private const val STELLE_MENO_PRECISO = 2
+
 /**
- * Un modello installato: lingue, tipo, spazio occupato e i pulsanti per usarlo o eliminarlo.
+ * Un modello generico che sbaglia troppo per consigliarlo: va nel gruppo chiuso dei meno precisi. Gli specializzati
+ * restano in vista anche se poco precisi, perché per la loro lingua possono essere l'unica scelta.
+ */
+private val ModelInfo.menoPreciso: Boolean
+    get() = stelleAccuratezza <= STELLE_MENO_PRECISO && !specializzato
+
+/**
+ * La forma di una riga in un gruppo, come le notifiche di Android: angoli larghi solo in cima al primo e in fondo
+ * all'ultimo, stretti fra una riga e l'altra.
+ */
+private fun formaNelGruppo(indice: Int, totale: Int): Shape {
+    val sopra = if (indice == 0) ANGOLO_GRUPPO else ANGOLO_INTERNO
+    val sotto = if (indice == totale - 1) ANGOLO_GRUPPO else ANGOLO_INTERNO
+    return RoundedCornerShape(topStart = sopra, topEnd = sopra, bottomStart = sotto, bottomEnd = sotto)
+}
+
+/**
+ * L'intestazione di una sezione, che la apre o la chiude, con il numero di modelli che contiene.
+ * @param secondaria Per un gruppo dentro una sezione, come i modelli meno precisi: meno in evidenza.
  */
 @Composable
-private fun SchedaModelloInstallato(
+private fun IntestazioneSezione(
+    titolo: String,
+    quanti: Int,
+    aperta: Boolean,
+    onApriChiudi: () -> Unit,
+    secondaria: Boolean = false,
+) {
+    val rotazione by animateFloatAsState(if (aperta) 180f else 0f, label = "freccia")
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = if (secondaria) 12.dp else 18.dp, bottom = 6.dp)
+            .clip(MaterialTheme.shapes.small)
+            .clickable(onClick = onApriChiudi)
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = titolo,
+            style = if (secondaria) MaterialTheme.typography.titleSmall else MaterialTheme.typography.titleMedium,
+            color = if (secondaria) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.primary,
+            modifier = Modifier.weight(1f),
+        )
+        Text(
+            text = quanti.toString(),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Icon(
+            Icons.Default.ExpandMore,
+            contentDescription = stringResource(if (aperta) R.string.azione_chiudi_sezione else R.string.azione_apri_sezione),
+            modifier = Modifier.rotate(rotazione),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+/**
+ * Una riga dell'elenco dei modelli: chiusa mostra nome, riassunto ed etichette; toccata si apre e mostra i dettagli,
+ * che si compongono solo allora, così lo scorrimento resta leggero.
+ * @param evidenziata Per il modello in uso, con il colore principale.
+ */
+@Composable
+private fun RigaModello(
+    titolo: String,
+    riassunto: String,
+    etichette: List<Etichetta>,
+    forma: Shape,
+    aperta: Boolean,
+    onApriChiudi: () -> Unit,
+    evidenziata: Boolean = false,
+    dettagli: @Composable ColumnScope.() -> Unit,
+) {
+    val colori = MaterialTheme.colorScheme
+    val rotazione by animateFloatAsState(if (aperta) 180f else 0f, label = "freccia")
+    Surface(
+        shape = forma,
+        color = if (evidenziata) colori.primaryContainer else colori.surfaceContainer,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onApriChiudi)
+                    .padding(start = 16.dp, top = 12.dp, end = 8.dp, bottom = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(text = titolo, style = MaterialTheme.typography.titleMedium)
+                    Text(text = riassunto, style = MaterialTheme.typography.bodySmall, color = colori.onSurfaceVariant)
+                    Etichette(etichette)
+                }
+                Icon(
+                    Icons.Default.ExpandMore,
+                    contentDescription = stringResource(
+                        if (aperta) R.string.azione_nascondi_dettagli else R.string.azione_mostra_dettagli,
+                    ),
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .rotate(rotazione),
+                )
+            }
+            AnimatedVisibility(visible = aperta, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
+                Column(
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                    content = dettagli,
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Un modello installato: chiuso mostra lingue e spazio occupato; aperto il tipo e i pulsanti per usarlo o eliminarlo.
+ */
+@Composable
+private fun RigaModelloInstallato(
     voce: ModelloSulTelefono,
     attivo: Boolean,
+    forma: Shape,
+    aperta: Boolean,
+    onApriChiudi: () -> Unit,
     onUsa: () -> Unit,
     onElimina: () -> Unit,
 ) {
     val context = LocalContext.current
     val modello = voce.modello
-    val colori = if (attivo) {
-        CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
-    } else {
-        CardDefaults.cardColors()
-    }
-    Card(modifier = Modifier.fillMaxWidth(), colors = colori) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text(text = modello.nome, style = MaterialTheme.typography.titleMedium)
-            Etichette(
-                buildList {
-                    if (attivo) add(Etichetta.IN_USO)
-                    if (modello.lingue.size == 1) add(Etichetta.SPECIALIZZATO)
-                    if (voce.catalogo == null) add(Etichetta.IMPORTATO)
-                    if (voce.catalogo?.nonCommerciale == true) add(Etichetta.NON_COMMERCIALE)
-                },
-            )
-            Dettaglio(stringResource(R.string.modello_lingue, descrizioneLingue(modello.lingue)))
-            Dettaglio(stringResource(R.string.modello_tipo, stringResource(modello.architettura.etichetta())))
-            Dettaglio(stringResource(R.string.modello_occupa, dimensione(context, voce.byteOccupati)))
-            if (voce.catalogo == null) Dettaglio(stringResource(R.string.modello_non_verificato))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                TextButton(onClick = onElimina) {
-                    Text(stringResource(R.string.azione_elimina))
-                }
-                if (!attivo) {
-                    Button(onClick = onUsa) {
-                        Text(stringResource(R.string.azione_usa))
-                    }
+    RigaModello(
+        titolo = modello.nome,
+        riassunto = stringResource(
+            R.string.modello_riassunto_installato,
+            descrizioneLingue(modello.lingue),
+            dimensione(context, voce.byteOccupati),
+        ),
+        etichette = buildList {
+            if (attivo) add(Etichetta.IN_USO)
+            if (modello.lingue.size == 1) add(Etichetta.SPECIALIZZATO)
+            if (voce.catalogo == null) add(Etichetta.IMPORTATO)
+            if (voce.catalogo?.nonCommerciale == true) add(Etichetta.NON_COMMERCIALE)
+        },
+        forma = forma,
+        aperta = aperta,
+        onApriChiudi = onApriChiudi,
+        evidenziata = attivo,
+    ) {
+        Dettaglio(stringResource(R.string.modello_tipo, stringResource(modello.architettura.etichetta())))
+        if (voce.catalogo == null) Dettaglio(stringResource(R.string.modello_non_verificato))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            TextButton(onClick = onElimina) {
+                Text(stringResource(R.string.azione_elimina))
+            }
+            if (!attivo) {
+                Button(onClick = onUsa) {
+                    Text(stringResource(R.string.azione_usa))
                 }
             }
         }
@@ -418,66 +625,101 @@ private fun SchedaModelloInstallato(
 }
 
 /**
- * Un modello del catalogo da scaricare, con quello che serve per sceglierlo: lingue, qualità, peso,
- * file da scaricare, tipo e licenza.
+ * Un gruppo di modelli del catalogo, una riga ciascuno.
+ * @param rigaAperta La chiave della riga aperta, se è in questo gruppo.
+ */
+private fun LazyListScope.gruppoCatalogo(
+    modelli: List<ModelInfo>,
+    idConsigliato: String?,
+    rigaAperta: String?,
+    onApriChiudi: (String) -> Unit,
+    onScarica: (ModelInfo) -> Unit,
+    onApri: (String) -> Unit,
+) {
+    itemsIndexed(modelli, key = { _, modello -> "catalogo-${modello.id}" }) { indice, modello ->
+        val chiave = "catalogo-${modello.id}"
+        RigaModelloCatalogo(
+            modello = modello,
+            consigliato = modello.id == idConsigliato,
+            forma = formaNelGruppo(indice, modelli.size),
+            aperta = rigaAperta == chiave,
+            onApriChiudi = { onApriChiudi(chiave) },
+            onScarica = { onScarica(modello) },
+            onApri = onApri,
+        )
+    }
+}
+
+/**
+ * Un modello del catalogo da scaricare: chiuso mostra accuratezza, velocità e peso; aperto quello che serve per
+ * sceglierlo (descrizione, lingue, RAM, file, tipo e licenza) e i pulsanti.
  * @param onApri Apre nel browser la pagina del modello.
  */
 @Composable
-private fun SchedaModelloCatalogo(
+private fun RigaModelloCatalogo(
     modello: ModelInfo,
     consigliato: Boolean,
+    forma: Shape,
+    aperta: Boolean,
+    onApriChiudi: () -> Unit,
     onScarica: () -> Unit,
     onApri: (String) -> Unit,
 ) {
     val context = LocalContext.current
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text(text = modello.name, style = MaterialTheme.typography.titleMedium)
-            Etichette(
-                buildList {
-                    if (consigliato) add(Etichetta.CONSIGLIATO)
-                    if (modello.specializzato) add(Etichetta.SPECIALIZZATO)
-                    if (modello.nonCommerciale) add(Etichetta.NON_COMMERCIALE)
-                },
-            )
-            Text(text = modello.description, style = MaterialTheme.typography.bodyMedium)
-            Dettaglio(stringResource(R.string.modello_lingue, descrizioneLingue(modello.lingue)))
-            Dettaglio(stringResource(R.string.modello_qualita, stelle(modello.stelleAccuratezza), stelle(modello.fulminiVelocita)))
-            Dettaglio(
-                stringResource(
-                    R.string.modello_peso,
-                    dimensione(context, modello.sizeBytes),
-                    dimensioneRam(context, modello.ramConsigliataMb),
-                ),
-            )
-            Dettaglio(stringResource(R.string.modello_tipo, stringResource(modello.architettura.etichetta())))
-            val file = stringResource(modello.architettura.fileDaScaricare())
-            // Alcuni archivi non dichiarano la quantizzazione
-            Dettaglio(
-                if (modello.quantizzazione.isBlank()) {
-                    stringResource(R.string.modello_file_semplice, file)
-                } else {
-                    stringResource(R.string.modello_file, file, modello.quantizzazione)
-                },
-            )
-            Dettaglio(
-                stringResource(if (modello.nonCommerciale) R.string.modello_licenza_nc else R.string.modello_licenza, modello.license),
-            )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                modello.paginaUrl?.let { pagina ->
-                    TextButton(onClick = { onApri(pagina) }) {
-                        Text(stringResource(R.string.azione_pagina))
-                    }
+    RigaModello(
+        titolo = modello.name,
+        riassunto = stringResource(
+            R.string.modello_riassunto_catalogo,
+            modello.stelleAccuratezza,
+            modello.fulminiVelocita,
+            dimensione(context, modello.sizeBytes),
+        ),
+        etichette = buildList {
+            if (consigliato) add(Etichetta.CONSIGLIATO)
+            if (modello.specializzato) add(Etichetta.SPECIALIZZATO)
+            if (modello.nonCommerciale) add(Etichetta.NON_COMMERCIALE)
+        },
+        forma = forma,
+        aperta = aperta,
+        onApriChiudi = onApriChiudi,
+    ) {
+        Text(text = modello.description, style = MaterialTheme.typography.bodyMedium)
+        Dettaglio(stringResource(R.string.modello_lingue, descrizioneLingue(modello.lingue)))
+        Dettaglio(stringResource(R.string.modello_qualita, stelle(modello.stelleAccuratezza), stelle(modello.fulminiVelocita)))
+        Dettaglio(
+            stringResource(
+                R.string.modello_peso,
+                dimensione(context, modello.sizeBytes),
+                dimensioneRam(context, modello.ramConsigliataMb),
+            ),
+        )
+        Dettaglio(stringResource(R.string.modello_tipo, stringResource(modello.architettura.etichetta())))
+        val file = stringResource(modello.architettura.fileDaScaricare())
+        // Alcuni archivi non dichiarano la quantizzazione
+        Dettaglio(
+            if (modello.quantizzazione.isBlank()) {
+                stringResource(R.string.modello_file_semplice, file)
+            } else {
+                stringResource(R.string.modello_file, file, modello.quantizzazione)
+            },
+        )
+        Dettaglio(
+            stringResource(if (modello.nonCommerciale) R.string.modello_licenza_nc else R.string.modello_licenza, modello.license),
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            modello.paginaUrl?.let { pagina ->
+                TextButton(onClick = { onApri(pagina) }) {
+                    Text(stringResource(R.string.azione_pagina))
                 }
-                FilledTonalButton(onClick = onScarica) {
-                    Icon(Icons.Default.Download, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
-                    Spacer(modifier = Modifier.width(ButtonDefaults.IconSpacing))
-                    Text(stringResource(R.string.azione_scarica))
-                }
+            }
+            FilledTonalButton(onClick = onScarica) {
+                Icon(Icons.Default.Download, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+                Spacer(modifier = Modifier.width(ButtonDefaults.IconSpacing))
+                Text(stringResource(R.string.azione_scarica))
             }
         }
     }
@@ -527,17 +769,6 @@ private fun Etichette(etichette: List<Etichetta>) {
 @Composable
 private fun Dettaglio(testo: String) {
     Text(text = testo, style = MaterialTheme.typography.bodySmall)
-}
-
-/** Il titolo di una sezione dell'elenco. */
-@Composable
-private fun TitoloSezione(testo: String) {
-    Text(
-        text = testo,
-        style = MaterialTheme.typography.titleMedium,
-        color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(top = 8.dp),
-    )
 }
 
 /** Una nota sotto un titolo, meno in evidenza del resto. */
