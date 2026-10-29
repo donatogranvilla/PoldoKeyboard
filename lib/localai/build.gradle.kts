@@ -45,11 +45,14 @@ configure<LibraryExtension> {
 
         externalNativeBuild {
             cmake {
-                // La libreria JNI con le sue dipendenze, e le varianti del backend CPU che whisper_jni carica
-                // a runtime: nessuna libreria le richiede, quindi vanno elencate perché finiscano nell'APK
+                // Le librerie JNI dei due motori con le loro dipendenze, e le varianti del backend CPU che si
+                // caricano a runtime: nessuna libreria le richiede, quindi vanno elencate perché finiscano nell'APK
                 targets(
                     "whisper_jni",
                     "whisper",
+                    "llama_jni",
+                    "llama",
+                    "backend_cpu",
                     "ggml",
                     "ggml-base",
                     "ggml-cpu-android_armv8.0_1",
