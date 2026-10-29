@@ -31,9 +31,11 @@ L'app è in italiano e in inglese.
 
 ## Come installarla
 
-Il progetto è giovane e **non c'è ancora una versione pubblicata sugli store**. L'APK si scarica da GitHub: apri la scheda [Actions](https://github.com/donatogranvilla/PoldoKeyboard/actions) del repository, scegli l'ultima esecuzione riuscita di **PoldoKeyboard CI** e scarica l'APK in fondo alla pagina. Per scaricarlo serve un account GitHub, anche gratuito.
+Il progetto è giovane e **non c'è ancora una versione pubblicata sugli store**. L'APK si scarica dalla pagina [Releases](https://github.com/donatogranvilla/PoldoKeyboard/releases) di GitHub: apri l'ultima versione e tocca il file `PoldoKeyboard-….apk` tra gli allegati. Non serve un account. Le versioni segnate come *Pre-release* sono anteprime da provare.
 
 Poi apri il file sul telefono e consenti l'installazione da fonti sconosciute quando Android lo chiede. Le versioni successive si installano sopra la precedente, senza perdere modelli e trascrizioni.
+
+Accanto a ogni APK c'è il file `.sha256` con la sua impronta, per controllare che il file scaricato sia quello pubblicato. Tutte le versioni sono firmate con lo stesso certificato, la cui impronta SHA-256 è `23:3E:D0:BF:82:D4:0C:A5:19:70:24:99:8A:58:2B:17:8A:BC:4E:57:50:E3:A2:11:6A:64:CB:3A:41:BB:A3:C5`.
 
 ## Primi passi
 

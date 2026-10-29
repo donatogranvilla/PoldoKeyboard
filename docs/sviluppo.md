@@ -67,3 +67,12 @@ git submodule update --init
 L'APK è in `app/build/outputs/apk/debug/app-debug.apk`. Le build di debug, locali e della CI, sono firmate con la chiave del progetto `app/debug.keystore`, così un APK nuovo si installa sopra il precedente senza perdere modelli e storico.
 
 La CI (GitHub Actions) compila a ogni push, pubblica l'APK tra gli artifact della run ed esegue i test unitari.
+
+## Pubblicare una versione
+
+Le versioni per chi usa l'app sono build di release, ottimizzate da R8, con il nome di pacchetto senza `.debug`: sul telefono convivono con le build di debug. Le firma una chiave privata che non sta nel repository; il workflow **Pubblica una versione** (`.github/workflows/rilascio.yml`) la prende dai secret `POLDO_FIRMA_CHIAVE` (il file PKCS12 in base64) e `POLDO_FIRMA_PASSWORD`, e si ferma se l'APK non porta il certificato del progetto.
+
+1. In `gradle.properties` aumenta `projectVersionCode` e scrivi la nuova `projectVersionName`, per esempio `0.3.0` o `0.3.0-beta.1`.
+2. Crea e pubblica il tag con la stessa versione preceduta da `v`, per esempio `v0.3.0`.
+
+Il workflow compila, controlla e crea la release con l'APK e la sua impronta. Un tag con un trattino crea un'anteprima.
