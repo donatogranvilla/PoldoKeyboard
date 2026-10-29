@@ -19,15 +19,9 @@ jobs:
           submodules: recursive
 
       - uses: gradle/actions/wrapper-validation@v4
-      # L'app usa la rete solo per scaricare il catalogo dei modelli, in un unico file: classi di rete nel codice
-      # Kotlin o Java di qualunque altro file fermano la run (la cartella cpp contiene il submodule di whisper.cpp)
+      # L'app usa la rete solo per scaricare il catalogo dei modelli: classi di rete altrove fermano la run
       - name: Check network code
-        run: |
-          permesso=lib/localai/src/main/kotlin/io/github/donatogranvilla/poldokeyboard/localai/model/ScaricatoreCatalogo.kt
-          rete='java\.net\.(URL|HttpURLConnection|URLConnection|Socket|ServerSocket|DatagramSocket)\b|javax\.net\.ssl|okhttp3|io\.ktor|retrofit2|android\.net\.http|DownloadManager|WebView'
-          trovati=$(grep -rlE --include='*.kt' --include='*.java' --exclude-dir=cpp "$rete" app/src lib/localai/src \
-              | grep -vFx "$permesso" || true)
-          if [ -n "$trovati" ]; then echo "Codice di rete fuori da $permesso:"; echo "$trovati"; exit 1; fi
+        run: .github/controlli/codice-di-rete.sh
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -37,22 +31,9 @@ jobs:
         uses: lukka/get-cmake@v4.0.2
       - name: Build with Gradle
         run: ./gradlew clean assembleDebug
-      # Le varianti del backend CPU si caricano a runtime: se una manca il motore non parte su quei processori,
-      # quindi la run si ferma prima di pubblicare l'APK
+      # Librerie native di tutte le varianti del processore e modello del VAD, prima di pubblicare l'APK
       - name: Check native libraries and VAD model
-        run: |
-          apk=app/build/outputs/apk/debug/app-debug.apk
-          unzip -l "$apk" 'lib/arm64-v8a/*'
-          for lib in whisper_jni whisper ggml ggml-base \
-              ggml-cpu-android_armv8.0_1 ggml-cpu-android_armv8.2_1 ggml-cpu-android_armv8.2_2 \
-              ggml-cpu-android_armv8.6_1 ggml-cpu-android_armv9.0_1 ggml-cpu-android_armv9.2_1 \
-              ggml-cpu-android_armv9.2_2 sherpa-onnx-jni; do
-            unzip -Z1 "$apk" | grep -Fxq "lib/arm64-v8a/lib$lib.so" || { echo "Manca lib$lib.so nell'APK"; exit 1; }
-          done
-          unzip -Z1 "$apk" | grep -Fxq "assets/vad/ggml-silero-v6.2.0.bin" || { echo "Manca il modello del VAD nell'APK"; exit 1; }
-          # Librerie con i simboli di debug: il passo di strip non ha trovato la NDK e l'APK cresce di 10 MB
-          unzip -p "$apk" lib/arm64-v8a/libwhisper.so > /tmp/libwhisper.so
-          if readelf -S /tmp/libwhisper.so | grep -q '.debug_info'; then echo "Librerie native con i simboli di debug"; exit 1; fi
+        run: .github/controlli/contenuto-apk.sh app/build/outputs/apk/debug/app-debug.apk
       - uses: actions/upload-artifact@v4
         with:
           name: app-debug.apk
