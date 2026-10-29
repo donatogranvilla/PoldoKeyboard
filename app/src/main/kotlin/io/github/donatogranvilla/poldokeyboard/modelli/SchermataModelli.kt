@@ -231,7 +231,6 @@ fun SchermataModelli(viewModel: ModelliViewModel, onIndietro: () -> Unit) {
                 }
                 gruppoCatalogo(
                     modelli = daScaricare,
-                    idConsigliato = profilo.idModelloConsigliato,
                     rigaAperta = rigaAperta,
                     onApriChiudi = apriChiudi,
                     onScarica = scarica,
@@ -251,7 +250,6 @@ fun SchermataModelli(viewModel: ModelliViewModel, onIndietro: () -> Unit) {
                         item { TestoNota(stringResource(R.string.modelli_meno_precisi_spiegazione)) }
                         gruppoCatalogo(
                             modelli = menoPrecisi,
-                            idConsigliato = profilo.idModelloConsigliato,
                             rigaAperta = rigaAperta,
                             onApriChiudi = apriChiudi,
                             onScarica = scarica,
@@ -634,7 +632,6 @@ private fun RigaModelloInstallato(
  */
 private fun LazyListScope.gruppoCatalogo(
     modelli: List<ModelInfo>,
-    idConsigliato: String?,
     rigaAperta: String?,
     onApriChiudi: (String) -> Unit,
     onScarica: (ModelInfo) -> Unit,
@@ -644,7 +641,6 @@ private fun LazyListScope.gruppoCatalogo(
         val chiave = "catalogo-${modello.id}"
         RigaModelloCatalogo(
             modello = modello,
-            consigliato = modello.id == idConsigliato,
             forma = formaNelGruppo(indice, modelli.size),
             aperta = rigaAperta == chiave,
             onApriChiudi = { onApriChiudi(chiave) },
@@ -662,7 +658,6 @@ private fun LazyListScope.gruppoCatalogo(
 @Composable
 private fun RigaModelloCatalogo(
     modello: ModelInfo,
-    consigliato: Boolean,
     forma: Shape,
     aperta: Boolean,
     onApriChiudi: () -> Unit,
@@ -679,7 +674,7 @@ private fun RigaModelloCatalogo(
             dimensione(context, modello.sizeBytes),
         ),
         etichette = buildList {
-            if (consigliato) add(Etichetta.CONSIGLIATO)
+            if (modello.consigliato) add(Etichetta.CONSIGLIATO)
             if (modello.specializzato) add(Etichetta.SPECIALIZZATO)
             if (modello.nonCommerciale) add(Etichetta.NON_COMMERCIALE)
         },

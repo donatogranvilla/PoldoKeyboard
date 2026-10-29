@@ -15,6 +15,8 @@ import java.io.File
  * @property paginaUrl La pagina del modello, con licenza e dettagli; se manca si usa [downloadUrl].
  * @property nonCommerciale true se la licenza vieta l'uso commerciale.
  * @property sha256 Impronta del file o dell'archivio scaricato: riconosce il modello all'import.
+ * @property consigliato true per i modelli da proporre per primi, scelti dalle prove sul banco; nel catalogo, così si
+ *   cambiano con l'aggiornamento online. Le versioni dell'app che non conoscono il campo lo ignorano.
  */
 @Serializable
 data class ModelInfo(
@@ -35,6 +37,7 @@ data class ModelInfo(
     val stelleAccuratezza: Int = 4,
     val fulminiVelocita: Int = 4,
     val quantizzazione: String = "Q5_1",
+    val consigliato: Boolean = false,
 ) {
     val formattedSize: String
         get() {

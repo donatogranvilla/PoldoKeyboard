@@ -70,7 +70,7 @@
     <string name="modelli_nessuno_per_lingua">No installed model covers this language.</string>
     <string name="modelli_sezione_da_scaricare">To download</string>
     <string name="modelli_da_scaricare_spiegazione">Download opens the file in the browser. When it has finished, come back here and tap Import: you can pick several files at once.</string>
-    <string name="modelli_dispositivo">Your phone: %1$d GB of RAM, %2$d cores. “Recommended” marks the model that suits it best.</string>
+    <string name="modelli_dispositivo">Your phone: %1$d GB of RAM, %2$d cores. “Recommended” marks the models that made the fewest mistakes in our tests on Italian voice messages.</string>
     <string name="modelli_tutti_scaricati">You already have all the catalog models for this language.</string>
     <string name="catalogo_aggiorna">Update the list</string>
     <string name="catalogo_in_corso">Updating the list…</string>

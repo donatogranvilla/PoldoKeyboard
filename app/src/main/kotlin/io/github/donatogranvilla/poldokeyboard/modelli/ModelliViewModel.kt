@@ -176,12 +176,20 @@ class ModelliViewModel(application: Application) : AndroidViewModel(application)
     val installatiFiltrati: List<ModelloSulTelefono>
         get() = installati.filter { copreFiltro(it.modello.lingue) }
 
-    /** I modelli del catalogo non ancora installati per la lingua del filtro: per una lingua, prima gli specializzati. */
+    /**
+     * I modelli del catalogo non ancora installati per la lingua del filtro: prima i consigliati, poi i più precisi e,
+     * a pari precisione, i più veloci.
+     */
     val daScaricare: List<ModelInfo>
         get() {
             val presenti = installati.map { it.modello.id }.toSet()
-            val disponibili = catalogo.filter { it.id !in presenti && copreFiltro(it.lingue) }
-            return if (filtroLingua == null) disponibili else disponibili.sortedByDescending { it.specializzato }
+            return catalogo
+                .filter { it.id !in presenti && copreFiltro(it.lingue) }
+                .sortedWith(
+                    compareByDescending<ModelInfo> { it.consigliato }
+                        .thenByDescending { it.stelleAccuratezza }
+                        .thenByDescending { it.fulminiVelocita },
+                )
         }
 
     init {

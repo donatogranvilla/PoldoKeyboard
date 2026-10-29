@@ -68,7 +68,7 @@
     <string name="modelli_nessuno_per_lingua">Nessun modello installato copre questa lingua.</string>
     <string name="modelli_sezione_da_scaricare">Da scaricare</string>
     <string name="modelli_da_scaricare_spiegazione">Scarica apre il file nel browser. Quando il download è finito, torna qui e tocca Importa: puoi scegliere più file insieme.</string>
-    <string name="modelli_dispositivo">Il tuo telefono: %1$d GB di RAM, %2$d core. «Consigliato» indica il modello più adatto.</string>
+    <string name="modelli_dispositivo">Il tuo telefono: %1$d GB di RAM, %2$d core. «Consigliato» indica i modelli che sbagliano meno nelle nostre prove sui vocali italiani.</string>
     <string name="modelli_tutti_scaricati">Hai già tutti i modelli del catalogo per questa lingua.</string>
     <string name="catalogo_aggiorna">Aggiorna l\'elenco</string>
     <string name="catalogo_in_corso">Aggiornamento dell\'elenco…</string>
