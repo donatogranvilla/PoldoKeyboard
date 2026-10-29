@@ -110,11 +110,12 @@ jobs:
           ls -l "$ARCHIVIO.tar.bz2"
           stat -c %s "$ARCHIVIO.tar.bz2"
 
-      # Tutte le conversioni stanno nella stessa release, "modelli"; un nuovo giro sostituisce il file con lo stesso nome
+      # Tutte le conversioni stanno nella stessa release, "modelli"; un nuovo giro sostituisce il file con lo stesso nome.
+      # Non è mai l'ultima release: quella la tiene l'APK
       - name: Pubblica nella release "modelli"
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view modelli >/dev/null 2>&1 || gh release create modelli --title "Modelli convertiti" \
+          gh release view modelli >/dev/null 2>&1 || gh release create modelli --title "Modelli convertiti" --latest=false \
             --notes "Modelli convertiti nel formato di sherpa-onnx dal workflow Converti un modello."
           gh release upload modelli "$ARCHIVIO.tar.bz2" "$ARCHIVIO.tar.bz2.sha256" --clobber

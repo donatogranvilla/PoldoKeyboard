@@ -75,4 +75,4 @@ Le versioni per chi usa l'app sono build di release, ottimizzate da R8, con il n
 1. In `gradle.properties` aumenta `projectVersionCode` e scrivi la nuova `projectVersionName`, per esempio `0.3.0` o `0.3.0-beta.1`.
 2. Crea e pubblica il tag con la stessa versione preceduta da `v`, per esempio `v0.3.0`.
 
-Il workflow compila, controlla e crea la release con l'APK e la sua impronta. Un tag con un trattino crea un'anteprima.
+Il workflow compila, controlla e crea la release con l'APK e la sua impronta. La release diventa l'ultima del repository, anche per le beta.

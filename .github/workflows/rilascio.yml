@@ -1,7 +1,8 @@
 name: Pubblica una versione
 
 # Parte con un tag come v0.2.0: compila l'APK di release, lo firma con la chiave privata dei secret e lo pubblica in
-# una release di GitHub. Un tag con un trattino, come v0.2.0-beta.1, crea un'anteprima invece di una versione stabile
+# una release di GitHub, segnata come l'ultima perché la pagina del repository mostri l'APK. Anche le beta escono come
+# release normali: un'anteprima non diventa mai l'ultima, e al suo posto comparirebbe la release dei modelli
 on:
   push:
     tags:
@@ -73,7 +74,5 @@ jobs:
           apk="PoldoKeyboard-$VERSIONE.apk"
           cp app/build/outputs/apk/release/app-release.apk "$apk"
           sha256sum "$apk" > "$apk.sha256"
-          anteprima=""
-          case "$GITHUB_REF_NAME" in *-*) anteprima="--prerelease" ;; esac
-          gh release create "$GITHUB_REF_NAME" "$apk" "$apk.sha256" $anteprima \
+          gh release create "$GITHUB_REF_NAME" "$apk" "$apk.sha256" --latest \
             --title "PoldoKeyboard $VERSIONE" --generate-notes
