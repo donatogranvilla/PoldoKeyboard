@@ -21,6 +21,7 @@ graph TD
         F[RilevatoreParlato - Silero VAD v6, blocchi di parlato fino a 24-35 s secondo il motore]
         L[LocalAiManager - sceglie motore, modello e lingua]
         H[MotoreWhisperCpp - whisper.cpp via JNI]
+        MT[MotoreTesto - llama.cpp via JNI, modelli di testo]
         K[MotoreSherpaOnnx - sherpa-onnx]
         J[ModelManager - catalogo JSON e import guidato]
     end
@@ -33,7 +34,9 @@ graph TD
 
 - **`:app`** (`io.github.donatogranvilla.poldokeyboard`): condivisione, archivio Room condiviso tra i processi, servizio in primo piano nel processo `:trascrizione`, notifiche, tastiera di trascrizione, storico e schermata dei modelli (Compose, Material 3 con i colori del telefono).
 - **`:lib:localai`**: decodifica dell'audio, rilevamento del parlato con Silero VAD v6 (l'unico modello incluso nell'APK, 885 KB), motori di trascrizione, catalogo e import dei modelli, benchmark.
-  - whisper.cpp 1.9.4 è un submodule git in `lib/localai/src/main/cpp/whisper.cpp`, compilato per arm64-v8a in sette varianti del backend CPU, da ARMv8.0 ad ARMv9.2 con SVE2 e SME: all'avvio si carica la più veloce che il processore supporta.
+  - whisper.cpp e llama.cpp sono submodule git in `lib/localai/src/main/cpp`, compilati per arm64-v8a sopra un solo ggml, quello di llama.cpp, in sette varianti del backend CPU, da ARMv8.0 ad ARMv9.2 con SVE2 e SME: all'avvio si carica la più veloce che il processore supporta.
+  - I due submodule vanno aggiornati insieme, a commit con lo stesso ggml: whisper.cpp compila sopra il ggml di llama.cpp, quindi le intestazioni in `ggml/include` devono coincidere (`diff -r llama.cpp/ggml/include whisper.cpp/ggml/include`).
+  - Di llama.cpp si compila solo la libreria: la sua libreria `common` contiene un client HTTP e resta fuori. `MotoreTesto` esegue i modelli di testo GGUF con un'istruzione e un testo, per rendere leggibili le trascrizioni e in futuro per riassunti e risposte.
   - sherpa-onnx 1.13.8 arriva come libreria già compilata della release ufficiale, con ONNX Runtime incluso, insieme alla sua API Kotlin.
 - **Isolamento**: il motore gira in un processo separato; se esaurisce la memoria si chiude quel processo, non l'app.
 
