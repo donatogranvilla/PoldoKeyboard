@@ -2,6 +2,7 @@ package io.github.donatogranvilla.poldokeyboard.localai.model
 
 import android.content.Context
 import android.net.Uri
+import android.provider.DocumentsContract
 import android.provider.OpenableColumns
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
@@ -191,6 +192,19 @@ class ModelManager(private val context: Context) {
      */
     fun annullaImport() {
         fileImport.delete()
+    }
+
+    /** Il nome del file scelto per l'import, se il provider lo espone. */
+    fun nomeSorgente(sorgente: Uri): String? = runCatching { leggiNome(sorgente) }.getOrNull()
+
+    /**
+     * Elimina il file da cui si è importato un modello: l'app ne ha la sua copia, e il file scaricato occuperebbe lo
+     * stesso spazio una seconda volta. Riesce solo se il provider lo permette con il permesso dato dal selettore.
+     * @return true se il file è stato eliminato; altrimenti l'utente lo cancella dall'app File.
+     */
+    suspend fun eliminaSorgente(sorgente: Uri): Boolean = withContext(Dispatchers.IO) {
+        // Il provider può rifiutare con SecurityException, o non saper eliminare con UnsupportedOperationException
+        runCatching { DocumentsContract.deleteDocument(context.contentResolver, sorgente) }.getOrDefault(false)
     }
 
     /**

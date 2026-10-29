@@ -49,17 +49,37 @@ sealed interface StatoImport {
     data class Analisi(val avanzamento: Float?) : StatoImport
 
     /** Il file è fuori catalogo: servono nome, lingue e tipo scelti dall'utente. */
-    data class DatiRichiesti(val analisi: AnalisiImport) : StatoImport
+    data class DatiRichiesti(val analisi: AnalisiImport, val sorgente: Uri) : StatoImport
 
     /** Estrazione dell'archivio, o salvataggio del file GGML, nella memoria privata. */
     data class Installazione(val avanzamento: Float?, val archivio: Boolean) : StatoImport
 
-    /** Modello installato e attivato; verificato se è un modello del catalogo. */
-    data class Completato(val modello: ModelloInstallato, val verificato: Boolean) : StatoImport
+    /** Import finito: l'esito di ogni file scelto, con la proposta di eliminare quelli già installati. */
+    data class Riepilogo(val esiti: List<EsitoFile>) : StatoImport
 
-    /** L'import si è fermato. */
-    data class Errore(val problema: ProblemaImport) : StatoImport
+    /**
+     * I file scaricati dei modelli importati sono stati eliminati, del tutto o in parte.
+     * @property nonEliminati Quelli che il provider non ha lasciato eliminare: l'utente li cancella a mano.
+     */
+    data class FileEliminati(val eliminati: Int, val byteLiberati: Long, val nonEliminati: Int) : StatoImport
 }
+
+/**
+ * Com'è andato l'import di uno dei file scelti.
+ * @property sorgente Il file scelto, per eliminarlo dopo l'import.
+ * @property byte La sua dimensione, o 0 se non si è arrivati a leggerla.
+ * @property modello Il modello installato, o null se l'import non è riuscito.
+ * @property verificato true se il file è un modello del catalogo con l'impronta giusta.
+ * @property problema Perché l'import non è riuscito, o null se è riuscito.
+ */
+data class EsitoFile(
+    val sorgente: Uri,
+    val nomeFile: String?,
+    val byte: Long,
+    val modello: ModelloInstallato?,
+    val verificato: Boolean,
+    val problema: ProblemaImport?,
+)
 
 /**
  * Perché un import non è riuscito, con i dati per spiegarlo all'utente.
@@ -105,6 +125,10 @@ class ModelliViewModel(application: Application) : AndroidViewModel(application)
     private val aggiornamentoCatalogo = AggiornamentoCatalogo(application)
     private var lavoroImport: Job? = null
 
+    /** I file scelti ancora da importare, uno alla volta, e gli esiti di quelli già fatti. */
+    private val codaImport = ArrayDeque<Uri>()
+    private val esitiImport = mutableListOf<EsitoFile>()
+
     /** RAM e core del telefono, per consigliare un modello. */
     val profilo = modelManager.getHardwareProfile()
 
@@ -136,6 +160,12 @@ class ModelliViewModel(application: Application) : AndroidViewModel(application)
 
     /** La fase dell'import in corso. */
     var statoImport by mutableStateOf<StatoImport>(StatoImport.Nessuno)
+        private set
+
+    /** Il numero del file in import e quanti ne sono stati scelti, per mostrare "File 2 di 3". */
+    var posizioneImport by mutableStateOf(0)
+        private set
+    var totaleImport by mutableStateOf(0)
         private set
 
     /** L'ultimo aggiornamento dell'elenco dei modelli. */
@@ -226,52 +256,61 @@ class ModelliViewModel(application: Application) : AndroidViewModel(application)
     }
 
     /**
-     * Primo passo dell'import: copia e riconosce il file scelto. Un modello del catalogo si installa subito;
-     * per uno fuori catalogo si chiedono i dati all'utente.
+     * Importa i file scelti, uno alla volta; alla fine mostra il riepilogo. Per ogni file, il primo passo copia e
+     * riconosce il file: un modello del catalogo si installa subito, per uno fuori catalogo si chiedono i dati.
      */
-    fun importa(sorgente: Uri) {
-        if (lavoroImport?.isActive == true) return
-        statoImport = StatoImport.Analisi(null)
-        lavoroImport = viewModelScope.launch {
-            val analisi = modelManager.analizzaImport(sorgente) { frazione ->
-                statoImport = StatoImport.Analisi(percentuale(frazione))
-            }.getOrElse { errore ->
-                if (errore is CancellationException) throw errore
-                statoImport = StatoImport.Errore(problemaDi(errore))
-                return@launch
-            }
-            when {
-                !analisi.formato.importabile -> {
-                    modelManager.annullaImport()
-                    statoImport = StatoImport.Errore(ProblemaImport.FormatoSbagliato(analisi.formato))
-                }
-                analisi.modelloCatalogo != null -> installa(analisi, personalizzato = null)
-                else -> statoImport = StatoImport.DatiRichiesti(analisi)
-            }
-        }
+    fun importa(sorgenti: List<Uri>) {
+        if (sorgenti.isEmpty() || statoImport != StatoImport.Nessuno) return
+        codaImport.clear()
+        codaImport.addAll(sorgenti)
+        esitiImport.clear()
+        posizioneImport = 0
+        totaleImport = sorgenti.size
+        prossimoFile()
     }
 
     /**
      * Secondo passo per un modello fuori catalogo: lo installa con i dati scelti dall'utente.
      */
     fun confermaDati(personalizzato: ModelloPersonalizzato) {
-        val analisi = (statoImport as? StatoImport.DatiRichiesti)?.analisi ?: return
-        lavoroImport = viewModelScope.launch { installa(analisi, personalizzato) }
+        val stato = statoImport as? StatoImport.DatiRichiesti ?: return
+        lavoroImport = viewModelScope.launch { installa(stato.sorgente, stato.analisi, personalizzato) }
     }
 
     /**
-     * Interrompe l'import in qualunque fase e libera lo spazio della copia.
+     * Interrompe l'import in qualunque fase, con i file che restavano, e libera lo spazio della copia. Se qualche
+     * file era già installato, mostra il riepilogo di quelli.
      */
     fun annullaImport() {
         lavoroImport?.cancel()
         lavoroImport = null
+        codaImport.clear()
         modelManager.annullaImport()
-        statoImport = StatoImport.Nessuno
+        statoImport = if (esitiImport.isEmpty()) StatoImport.Nessuno else StatoImport.Riepilogo(esitiImport.toList())
     }
 
     /** Chiude il messaggio con l'esito dell'import. */
     fun chiudiEsito() {
+        esitiImport.clear()
         statoImport = StatoImport.Nessuno
+    }
+
+    /**
+     * Elimina i file scaricati dei modelli appena installati, che altrimenti occuperebbero lo spazio due volte.
+     */
+    fun eliminaFileImportati() {
+        val riepilogo = statoImport as? StatoImport.Riepilogo ?: return
+        val installati = riepilogo.esiti.filter { it.modello != null }
+        esitiImport.clear()
+        statoImport = StatoImport.Nessuno
+        viewModelScope.launch {
+            val eliminati = installati.filter { modelManager.eliminaSorgente(it.sorgente) }
+            statoImport = StatoImport.FileEliminati(
+                eliminati = eliminati.size,
+                byteLiberati = eliminati.sumOf { it.byte },
+                nonEliminati = installati.size - eliminati.size,
+            )
+        }
     }
 
     override fun onCleared() {
@@ -281,19 +320,71 @@ class ModelliViewModel(application: Application) : AndroidViewModel(application)
     }
 
     /**
-     * Installa il file analizzato e aggiorna l'elenco, con l'esito per l'utente.
+     * Importa il prossimo file della coda o, se la coda è vuota, mostra il riepilogo.
      */
-    private suspend fun installa(analisi: AnalisiImport, personalizzato: ModelloPersonalizzato?) {
+    private fun prossimoFile() {
+        val sorgente = codaImport.removeFirstOrNull()
+        if (sorgente == null) {
+            statoImport = StatoImport.Riepilogo(esitiImport.toList())
+            return
+        }
+        posizioneImport++
+        statoImport = StatoImport.Analisi(null)
+        lavoroImport = viewModelScope.launch {
+            val analisi = modelManager.analizzaImport(sorgente) { frazione ->
+                statoImport = StatoImport.Analisi(percentuale(frazione))
+            }.getOrElse { errore ->
+                if (errore is CancellationException) throw errore
+                registraEsito(sorgente, analisi = null, problema = problemaDi(errore))
+                return@launch
+            }
+            when {
+                !analisi.formato.importabile -> {
+                    modelManager.annullaImport()
+                    registraEsito(sorgente, analisi, problema = ProblemaImport.FormatoSbagliato(analisi.formato))
+                }
+                analisi.modelloCatalogo != null -> installa(sorgente, analisi, personalizzato = null)
+                else -> statoImport = StatoImport.DatiRichiesti(analisi, sorgente)
+            }
+        }
+    }
+
+    /**
+     * Installa il file analizzato e aggiorna l'elenco, poi passa al file successivo.
+     */
+    private suspend fun installa(sorgente: Uri, analisi: AnalisiImport, personalizzato: ModelloPersonalizzato?) {
         statoImport = StatoImport.Installazione(null, archivio = analisi.formato.archivio)
-        modelManager.completaImport(analisi, personalizzato) { frazione ->
+        val risultato = modelManager.completaImport(analisi, personalizzato) { frazione ->
             statoImport = StatoImport.Installazione(percentuale(frazione), archivio = analisi.formato.archivio)
-        }.onSuccess { modello ->
-            statoImport = StatoImport.Completato(modello, verificato = analisi.modelloCatalogo != null)
-        }.onFailure { errore ->
-            if (errore is CancellationException) throw errore
-            statoImport = StatoImport.Errore(problemaDi(errore))
         }
         aggiorna()
+        risultato.onSuccess { modello ->
+            registraEsito(sorgente, analisi, modello = modello)
+        }.onFailure { errore ->
+            if (errore is CancellationException) throw errore
+            registraEsito(sorgente, analisi, problema = problemaDi(errore))
+        }
+    }
+
+    /**
+     * Conserva com'è andato un file per il riepilogo e passa al prossimo.
+     * @param analisi null se il file non si è nemmeno potuto leggere.
+     */
+    private fun registraEsito(
+        sorgente: Uri,
+        analisi: AnalisiImport?,
+        modello: ModelloInstallato? = null,
+        problema: ProblemaImport? = null,
+    ) {
+        esitiImport += EsitoFile(
+            sorgente = sorgente,
+            nomeFile = analisi?.nomeFile ?: modelManager.nomeSorgente(sorgente),
+            byte = analisi?.dimensione ?: 0L,
+            modello = modello,
+            verificato = modello != null && analisi?.modelloCatalogo != null,
+            problema = problema,
+        )
+        prossimoFile()
     }
 
     /** true se un modello con queste lingue va mostrato con il filtro attuale. */

@@ -67,7 +67,7 @@
     <string name="modelli_nessuno_installato">Ancora nessun modello: scegline uno qui sotto, scaricalo con il browser e importalo con il pulsante Importa.</string>
     <string name="modelli_nessuno_per_lingua">Nessun modello installato copre questa lingua.</string>
     <string name="modelli_sezione_da_scaricare">Da scaricare</string>
-    <string name="modelli_da_scaricare_spiegazione">Scarica apre il file nel browser. Quando il download è finito, torna qui e tocca Importa.</string>
+    <string name="modelli_da_scaricare_spiegazione">Scarica apre il file nel browser. Quando il download è finito, torna qui e tocca Importa: puoi scegliere più file insieme.</string>
     <string name="modelli_dispositivo">Il tuo telefono: %1$d GB di RAM, %2$d core. «Consigliato» indica il modello più adatto.</string>
     <string name="modelli_tutti_scaricati">Hai già tutti i modelli del catalogo per questa lingua.</string>
     <string name="catalogo_aggiorna">Aggiorna l\'elenco</string>
@@ -175,6 +175,29 @@
     <string name="import_completato_verificato">«%1$s» è installato e verificato, ed è il modello in uso.</string>
     <string name="import_completato_personalizzato">«%1$s» è installato ed è il modello in uso.</string>
     <string name="import_errore_titolo">Import non riuscito</string>
+    <string name="import_coda">File %1$d di %2$d</string>
+    <string name="import_riepilogo_titolo">Import finito</string>
+    <string name="import_file_verificato">«%1$s» è installato e verificato.</string>
+    <string name="import_file_installato">«%1$s» è installato.</string>
+    <string name="import_in_uso_ultimo">Il modello in uso è «%1$s», l\'ultimo installato.</string>
+    <plurals name="import_elimina_proposta">
+        <item quantity="one">Il file scaricato occupa ancora %2$s, e l\'app ne ha già la sua copia. Vuoi eliminarlo?</item>
+        <item quantity="other">I %1$d file scaricati occupano ancora %2$s, e l\'app ne ha già la sua copia. Vuoi eliminarli?</item>
+    </plurals>
+    <plurals name="azione_elimina_file">
+        <item quantity="one">Elimina il file</item>
+        <item quantity="other">Elimina i file</item>
+    </plurals>
+    <string name="azione_tieni">Tieni</string>
+    <string name="import_eliminati_titolo">File scaricati</string>
+    <plurals name="import_eliminati">
+        <item quantity="one">File scaricato eliminato: liberati %2$s.</item>
+        <item quantity="other">%1$d file scaricati eliminati: liberati %2$s.</item>
+    </plurals>
+    <plurals name="import_non_eliminati">
+        <item quantity="one">Un file non si è potuto eliminare: cancellalo dall\'app File.</item>
+        <item quantity="other">%1$d file non si sono potuti eliminare: cancellali dall\'app File.</item>
+    </plurals>
 
     <!-- Guida alla scelta dei modelli -->
     <string name="guida_titolo">Come scegliere e importare un modello</string>

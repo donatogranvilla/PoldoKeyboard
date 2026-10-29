@@ -104,8 +104,9 @@ fun SchermataModelli(viewModel: ModelliViewModel, onIndietro: () -> Unit) {
     var mostraTest by rememberSaveable { mutableStateOf(false) }
     var sceltaLingua by rememberSaveable { mutableStateOf(false) }
     var daEliminare by remember { mutableStateOf<ModelloSulTelefono?>(null) }
-    val selettore = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        if (uri != null) viewModel.importa(uri)
+    // Si possono scegliere più file insieme: si importano uno dopo l'altro
+    val selettore = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { file ->
+        viewModel.importa(file)
     }
     // La riga aperta, una sola alla volta, e le sezioni aperte
     var rigaAperta by rememberSaveable { mutableStateOf<String?>(null) }
@@ -284,9 +285,12 @@ fun SchermataModelli(viewModel: ModelliViewModel, onIndietro: () -> Unit) {
     }
     DialoghiImport(
         stato = viewModel.statoImport,
+        posizione = viewModel.posizioneImport,
+        totale = viewModel.totaleImport,
         onConfermaDati = viewModel::confermaDati,
         onAnnulla = viewModel::annullaImport,
         onChiudi = viewModel::chiudiEsito,
+        onEliminaFile = viewModel::eliminaFileImportati,
     )
     if (mostraTest) {
         BenchmarkDialog(localAiManager = viewModel.motoreTest, onDismiss = { mostraTest = false })

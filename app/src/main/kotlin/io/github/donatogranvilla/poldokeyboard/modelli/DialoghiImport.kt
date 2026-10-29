@@ -29,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
@@ -45,41 +46,48 @@ import java.text.NumberFormat
 private val ESTENSIONI_MODELLO = listOf(".tar.bz2", ".zip", ".bin", ".ggml")
 
 /**
- * Le finestre dell'import, una per fase: avanzamento, dati del modello fuori catalogo, esito.
+ * Le finestre dell'import, una per fase: avanzamento, dati del modello fuori catalogo, riepilogo e file eliminati.
+ * @param posizione Il numero del file in import, contato da 1.
+ * @param totale Quanti file sono stati scelti: se più di uno, le finestre dicono a quale si è arrivati.
+ * @param onEliminaFile Elimina i file scaricati dei modelli installati.
  */
 @Composable
 fun DialoghiImport(
     stato: StatoImport,
+    posizione: Int,
+    totale: Int,
     onConfermaDati: (ModelloPersonalizzato) -> Unit,
     onAnnulla: () -> Unit,
     onChiudi: () -> Unit,
+    onEliminaFile: () -> Unit,
 ) {
+    val coda = if (totale > 1) stringResource(R.string.import_coda, posizione, totale) else null
     when (stato) {
         StatoImport.Nessuno -> Unit
         is StatoImport.Analisi -> Avanzamento(
             titolo = R.string.import_analisi_titolo,
             messaggio = R.string.import_analisi_messaggio,
+            coda = coda,
             avanzamento = stato.avanzamento,
             onAnnulla = onAnnulla,
         )
         is StatoImport.Installazione -> Avanzamento(
             titolo = R.string.import_installazione_titolo,
             messaggio = if (stato.archivio) R.string.import_installazione_archivio else R.string.import_installazione_file,
+            coda = coda,
             avanzamento = stato.avanzamento,
             onAnnulla = onAnnulla,
         )
-        is StatoImport.DatiRichiesti -> DatiModello(analisi = stato.analisi, onConferma = onConfermaDati, onAnnulla = onAnnulla)
-        is StatoImport.Completato -> Esito(
-            titolo = R.string.import_completato_titolo,
-            messaggio = stringResource(
-                if (stato.verificato) R.string.import_completato_verificato else R.string.import_completato_personalizzato,
-                stato.modello.nome,
-            ),
-            onChiudi = onChiudi,
+        is StatoImport.DatiRichiesti -> DatiModello(
+            analisi = stato.analisi,
+            coda = coda,
+            onConferma = onConfermaDati,
+            onAnnulla = onAnnulla,
         )
-        is StatoImport.Errore -> Esito(
-            titolo = R.string.import_errore_titolo,
-            messaggio = spiegazioneProblema(stato.problema),
+        is StatoImport.Riepilogo -> Riepilogo(esiti = stato.esiti, onElimina = onEliminaFile, onChiudi = onChiudi)
+        is StatoImport.FileEliminati -> Esito(
+            titolo = R.string.import_eliminati_titolo,
+            messaggio = esitoEliminazione(stato),
             onChiudi = onChiudi,
         )
     }
@@ -91,13 +99,20 @@ fun DialoghiImport(
  * @param avanzamento Frazione completata, o null se non si conosce.
  */
 @Composable
-private fun Avanzamento(@StringRes titolo: Int, @StringRes messaggio: Int, avanzamento: Float?, onAnnulla: () -> Unit) {
+private fun Avanzamento(
+    @StringRes titolo: Int,
+    @StringRes messaggio: Int,
+    coda: String?,
+    avanzamento: Float?,
+    onAnnulla: () -> Unit,
+) {
     AlertDialog(
         onDismissRequest = {},
         properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false),
         title = { Text(stringResource(titolo)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                if (coda != null) Text(text = coda, style = MaterialTheme.typography.labelLarge)
                 Text(stringResource(messaggio))
                 if (avanzamento != null) {
                     LinearProgressIndicator(progress = { avanzamento }, modifier = Modifier.fillMaxWidth())
@@ -124,7 +139,12 @@ private fun Avanzamento(@StringRes titolo: Int, @StringRes messaggio: Int, avanz
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun DatiModello(analisi: AnalisiImport, onConferma: (ModelloPersonalizzato) -> Unit, onAnnulla: () -> Unit) {
+private fun DatiModello(
+    analisi: AnalisiImport,
+    coda: String?,
+    onConferma: (ModelloPersonalizzato) -> Unit,
+    onAnnulla: () -> Unit,
+) {
     val context = LocalContext.current
     val ggml = analisi.formato == FormatoFileModello.GGML_WHISPER
     val soloInglese = analisi.intestazioneGgml?.multilingue == false
@@ -149,6 +169,7 @@ private fun DatiModello(analisi: AnalisiImport, onConferma: (ModelloPersonalizza
                 modifier = Modifier.verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
+                if (coda != null) Text(text = coda, style = MaterialTheme.typography.labelLarge)
                 Text(stringResource(R.string.import_dati_messaggio))
                 Text(
                     text = stringResource(
@@ -222,7 +243,119 @@ private fun DatiModello(analisi: AnalisiImport, onConferma: (ModelloPersonalizza
     )
 }
 
-/** La finestra con l'esito dell'import, riuscito o no. */
+/**
+ * Com'è andato l'import di ogni file scelto. Se qualche modello si è installato, propone di eliminare i file
+ * scaricati, che occuperebbero lo spazio una seconda volta.
+ */
+@Composable
+private fun Riepilogo(esiti: List<EsitoFile>, onElimina: () -> Unit, onChiudi: () -> Unit) {
+    val context = LocalContext.current
+    val installati = esiti.filter { it.modello != null }
+    val titolo = when (installati.size) {
+        esiti.size -> R.string.import_completato_titolo
+        0 -> R.string.import_errore_titolo
+        else -> R.string.import_riepilogo_titolo
+    }
+    AlertDialog(
+        onDismissRequest = onChiudi,
+        title = { Text(stringResource(titolo)) },
+        text = {
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                if (esiti.size == 1) {
+                    Text(messaggioEsito(esiti.single(), unico = true))
+                } else {
+                    for (esito in esiti) {
+                        Column {
+                            Text(text = esito.nomeFile ?: "—", style = MaterialTheme.typography.titleSmall)
+                            Text(text = messaggioEsito(esito, unico = false), style = MaterialTheme.typography.bodyMedium)
+                        }
+                    }
+                    // Ogni import attiva il suo modello: alla fine resta in uso l'ultimo installato
+                    installati.lastOrNull()?.modello?.let { ultimo ->
+                        Text(stringResource(R.string.import_in_uso_ultimo, ultimo.nome))
+                    }
+                }
+                if (installati.isNotEmpty()) {
+                    Text(
+                        text = pluralStringResource(
+                            R.plurals.import_elimina_proposta,
+                            installati.size,
+                            installati.size,
+                            dimensione(context, installati.sumOf { it.byte }),
+                        ),
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            if (installati.isNotEmpty()) {
+                TextButton(onClick = onElimina) {
+                    Text(pluralStringResource(R.plurals.azione_elimina_file, installati.size))
+                }
+            } else {
+                TextButton(onClick = onChiudi) {
+                    Text(stringResource(R.string.azione_ok))
+                }
+            }
+        },
+        dismissButton = {
+            if (installati.isNotEmpty()) {
+                TextButton(onClick = onChiudi) {
+                    Text(stringResource(R.string.azione_tieni))
+                }
+            }
+        },
+    )
+}
+
+/**
+ * L'esito di un file: installato, verificato o no, oppure perché non è riuscito.
+ * @param unico true se è l'unico file scelto: allora si dice anche che il modello è quello in uso.
+ */
+@Composable
+private fun messaggioEsito(esito: EsitoFile, unico: Boolean): String {
+    val modello = esito.modello
+    val problema = esito.problema
+    return when {
+        modello != null && unico -> stringResource(
+            if (esito.verificato) R.string.import_completato_verificato else R.string.import_completato_personalizzato,
+            modello.nome,
+        )
+        modello != null -> stringResource(
+            if (esito.verificato) R.string.import_file_verificato else R.string.import_file_installato,
+            modello.nome,
+        )
+        problema != null -> spiegazioneProblema(problema)
+        else -> stringResource(R.string.errore_import_sconosciuto)
+    }
+}
+
+/** Quanti file scaricati sono stati eliminati, lo spazio liberato e quanti vanno cancellati a mano. */
+@Composable
+private fun esitoEliminazione(stato: StatoImport.FileEliminati): String {
+    val context = LocalContext.current
+    val parti = buildList {
+        if (stato.eliminati > 0) {
+            add(
+                pluralStringResource(
+                    R.plurals.import_eliminati,
+                    stato.eliminati,
+                    stato.eliminati,
+                    dimensione(context, stato.byteLiberati),
+                ),
+            )
+        }
+        if (stato.nonEliminati > 0) {
+            add(pluralStringResource(R.plurals.import_non_eliminati, stato.nonEliminati, stato.nonEliminati))
+        }
+    }
+    return parti.joinToString(" ")
+}
+
+/** Una finestra con un esito da leggere e il pulsante OK. */
 @Composable
 private fun Esito(@StringRes titolo: Int, messaggio: String, onChiudi: () -> Unit) {
     AlertDialog(
