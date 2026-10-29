@@ -38,6 +38,18 @@ configure<ApplicationExtension> {
             keyAlias = "androiddebugkey"
             keyPassword = "android"
         }
+        // La chiave delle versioni pubblicate è privata: arriva dai secret di GitHub nel workflow di rilascio, mai
+        // dal repository. Senza, l'APK di release esce senza firma
+        val fileFirma = providers.environmentVariable("POLDO_FIRMA_FILE").orNull
+        if (fileFirma != null) {
+            create("rilascio") {
+                storeFile = file(fileFirma)
+                storeType = "pkcs12"
+                storePassword = providers.environmentVariable("POLDO_FIRMA_PASSWORD").get()
+                keyAlias = "poldokeyboard"
+                keyPassword = providers.environmentVariable("POLDO_FIRMA_PASSWORD").get()
+            }
+        }
     }
 
     buildTypes {
@@ -48,6 +60,7 @@ configure<ApplicationExtension> {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            signingConfig = signingConfigs.findByName("rilascio")
         }
     }
 

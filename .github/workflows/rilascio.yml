@@ -1,0 +1,79 @@
+name: Pubblica una versione
+
+# Parte con un tag come v0.2.0: compila l'APK di release, lo firma con la chiave privata dei secret e lo pubblica in
+# una release di GitHub. Un tag con un trattino, come v0.2.0-beta.1, crea un'anteprima invece di una versione stabile
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  rilascio:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: gradle/actions/wrapper-validation@v4
+
+      # Il tag deve essere la versione scritta in gradle.properties, così l'app dice la stessa versione della release
+      - name: Controlla la versione
+        run: |
+          versione=$(grep '^projectVersionName=' gradle.properties | cut -d= -f2)
+          if [ "v$versione" != "$GITHUB_REF_NAME" ]; then
+            echo "Il tag $GITHUB_REF_NAME non corrisponde alla versione $versione di gradle.properties"; exit 1
+          fi
+          echo "VERSIONE=$versione" >> "$GITHUB_ENV"
+
+      - name: Controlla il codice di rete
+        run: .github/controlli/codice-di-rete.sh
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: temurin
+      - name: Set up CMake and Ninja
+        uses: lukka/get-cmake@v4.0.2
+
+      # La chiave arriva in base64 dal secret e resta solo nella cartella temporanea del runner
+      - name: Prepara la chiave di firma
+        env:
+          CHIAVE: ${{ secrets.POLDO_FIRMA_CHIAVE }}
+        run: |
+          if [ -z "$CHIAVE" ]; then echo "Manca il secret POLDO_FIRMA_CHIAVE"; exit 1; fi
+          echo "$CHIAVE" | base64 -d > "$RUNNER_TEMP/firma.p12"
+          echo "POLDO_FIRMA_FILE=$RUNNER_TEMP/firma.p12" >> "$GITHUB_ENV"
+
+      - name: Compila l'APK di release
+        env:
+          POLDO_FIRMA_PASSWORD: ${{ secrets.POLDO_FIRMA_PASSWORD }}
+        run: ./gradlew clean assembleRelease
+
+      - name: Controlla librerie native e modello del VAD
+        run: .github/controlli/contenuto-apk.sh app/build/outputs/apk/release/app-release.apk
+
+      # Un APK senza firma o firmato con un'altra chiave non si installerebbe sopra le versioni già distribuite
+      - name: Controlla la firma
+        run: |
+          apksigner=$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)
+          "$apksigner" verify --print-certs app/build/outputs/apk/release/app-release.apk | tee firma.txt
+          grep -qi "SHA-256 digest: 233ed0bf82d40ca5197024998a582b178abc4e5750e3a2116a64cb3a41bba3c5" firma.txt \
+            || { echo "L'APK non è firmato con la chiave di PoldoKeyboard"; exit 1; }
+
+      - name: Pubblica la release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          apk="PoldoKeyboard-$VERSIONE.apk"
+          cp app/build/outputs/apk/release/app-release.apk "$apk"
+          sha256sum "$apk" > "$apk.sha256"
+          anteprima=""
+          case "$GITHUB_REF_NAME" in *-*) anteprima="--prerelease" ;; esac
+          gh release create "$GITHUB_REF_NAME" "$apk" "$apk.sha256" $anteprima \
+            --title "PoldoKeyboard $VERSIONE" --generate-notes
