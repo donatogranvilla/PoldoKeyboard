@@ -49,7 +49,7 @@
     "qualityLevel": "Buona accuratezza",
     "description": "Buon compromesso tra qualità e velocità, per tutte le lingue; con audio rumorosi e nomi propri resta sotto i modelli large. Per l'italiano è poco: sui vocali veri sbaglia una parola su quattro (25,3%).",
     "ramConsigliataMb": 900,
-    "stelleAccuratezza": 2,
+    "stelleAccuratezza": 1,
     "fulminiVelocita": 3,
     "quantizzazione": "Q5_1"
   },
@@ -67,7 +67,7 @@
     "qualityLevel": "Alta accuratezza",
     "description": "Qualità vicina ai modelli large con un file più piccolo, per tutte le lingue, ma più lento di Small. Sui vocali italiani sbaglia il 17,1% delle parole: Large v3 Turbo pesa uguale e sbaglia meno.",
     "ramConsigliataMb": 1000,
-    "stelleAccuratezza": 3,
+    "stelleAccuratezza": 2,
     "fulminiVelocita": 2,
     "quantizzazione": "Q5_0"
   },
@@ -85,9 +85,10 @@
     "qualityLevel": "Molto alta",
     "description": "Large v3 con il decoder ridotto da 32 a 4 strati: qualità molto alta per tutte le lingue, con file e tempi contenuti. Il miglior punto di partenza se Small non basta. Il migliore per l'italiano sul telefono: sui nostri 101 vocali veri sbaglia l'11,7% delle parole.",
     "ramConsigliataMb": 1000,
-    "stelleAccuratezza": 5,
+    "stelleAccuratezza": 4,
     "fulminiVelocita": 2,
-    "quantizzazione": "Q5_0"
+    "quantizzazione": "Q5_0",
+    "consigliato": true
   },
   {
     "id": "whisper-large-v3-turbo-q8_0",
@@ -123,7 +124,8 @@
     "ramConsigliataMb": 2000,
     "stelleAccuratezza": 5,
     "fulminiVelocita": 1,
-    "quantizzazione": "Q5_0"
+    "quantizzazione": "Q5_0",
+    "consigliato": true
   },
   {
     "id": "parakeet-tdt-0.6b-v3-int8",
@@ -150,8 +152,8 @@
     "qualityLevel": "Molto alta",
     "description": "NVIDIA, 25 lingue europee con punteggiatura e maiuscole, molto più veloce dei Whisper grandi. Ottimo per italiano (WER 3,0 su FLEURS), spagnolo, portoghese, inglese, tedesco, francese e russo; più debole per croato, greco e sloveno. Non copre albanese, catalano, turco e arabo. Sui vocali italiani veri sbaglia il 14,8% delle parole, più di Large v3 Turbo (11,7%), ma è molto più veloce.",
     "ramConsigliataMb": 1000,
-    "stelleAccuratezza": 4,
-    "fulminiVelocita": 4,
+    "stelleAccuratezza": 3,
+    "fulminiVelocita": 5,
     "quantizzazione": "int8"
   },
   {
@@ -180,8 +182,9 @@
     "description": "Parakeet TDT 0.6B v3 riaddestrato da Moondream: stesse lingue, stessa velocità, punteggiatura e maiuscole, ma più preciso. Sui vocali italiani veri sbaglia il 12,8% delle parole, contro il 14,8% di Parakeet v3, vicino a Large v3 Turbo (11,7%) e molto più veloce. Il file è convertito per sherpa-onnx dal repository di PoldoKeyboard.",
     "ramConsigliataMb": 1000,
     "stelleAccuratezza": 4,
-    "fulminiVelocita": 4,
-    "quantizzazione": "int8"
+    "fulminiVelocita": 5,
+    "quantizzazione": "int8",
+    "consigliato": true
   },
   {
     "id": "nemo-fastconformer-multi-20k-int8",
@@ -206,7 +209,7 @@
     "qualityLevel": "Buona",
     "description": "NVIDIA, leggero (107 MB) e con punteggiatura, per italiano, inglese, spagnolo, francese, tedesco, croato e russo. La licenza NGC non è open: l'uso commerciale va verificato, per questo è segnato come non commerciale. Sconsigliato per l'italiano: sui vocali veri sbaglia più di una parola su tre (35%).",
     "ramConsigliataMb": 400,
-    "stelleAccuratezza": 2,
+    "stelleAccuratezza": 1,
     "fulminiVelocita": 5,
     "quantizzazione": "int8"
   },
@@ -224,7 +227,7 @@
     "qualityLevel": "Buona",
     "description": "Meta, più di 1600 lingue: copre anche albanese, marocchino, catalano e turco, che hanno pochi modelli. Testo senza punteggiatura né maiuscole. Per l'italiano ci sono modelli molto migliori: sui vocali veri sbaglia il 38,9% delle parole.",
     "ramConsigliataMb": 600,
-    "stelleAccuratezza": 2,
+    "stelleAccuratezza": 1,
     "fulminiVelocita": 4,
     "quantizzazione": "int8"
   },
@@ -242,8 +245,8 @@
     "qualityLevel": "Alta",
     "description": "La versione più accurata di Omnilingual, sempre per più di 1600 lingue e senza punteggiatura. Più pesante e più lenta del 300M. Per l'italiano ci sono modelli molto migliori: sui vocali veri sbaglia il 29,4% delle parole ed è lento.",
     "ramConsigliataMb": 1500,
-    "stelleAccuratezza": 2,
-    "fulminiVelocita": 3,
+    "stelleAccuratezza": 1,
+    "fulminiVelocita": 1,
     "quantizzazione": "int8"
   },
   {
@@ -262,7 +265,7 @@
     "qualityLevel": "Molto alta",
     "description": "Turbo di LocalAI addestrato sull'italiano (MLS, VoxPopuli e parlato spontaneo YODAS), veloce quanto il Turbo ufficiale. Sui vocali italiani sbaglia il 14,9% delle parole, più del Turbo ufficiale (11,7%).",
     "ramConsigliataMb": 1000,
-    "stelleAccuratezza": 4,
+    "stelleAccuratezza": 3,
     "fulminiVelocita": 2,
     "quantizzazione": "Q5_0"
   },
