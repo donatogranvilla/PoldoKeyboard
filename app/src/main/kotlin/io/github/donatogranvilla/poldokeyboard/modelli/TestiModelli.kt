@@ -11,6 +11,7 @@ import io.github.donatogranvilla.poldokeyboard.R
 import io.github.donatogranvilla.poldokeyboard.localai.engine.ArchitetturaModello
 import io.github.donatogranvilla.poldokeyboard.localai.model.FormatoFileModello
 import java.text.Collator
+import java.text.NumberFormat
 import java.util.Locale
 
 /**
@@ -68,6 +69,10 @@ fun stelle(voto: Int): String {
     val pieno = voto.coerceIn(0, 5)
     return "★".repeat(pieno) + "☆".repeat(5 - pieno)
 }
+
+/** Una percentuale con un decimale nel formato del telefono, come "12,8%". */
+fun percentuale(valore: Double): String =
+    NumberFormat.getPercentInstance().apply { maximumFractionDigits = 1 }.format(valore / 100)
 
 /** Una dimensione in byte nel formato del telefono, come "182 MB". */
 fun dimensione(context: Context, byte: Long): String = Formatter.formatShortFileSize(context, byte)

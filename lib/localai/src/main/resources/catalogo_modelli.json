@@ -15,7 +15,8 @@
     "ramConsigliataMb": 200,
     "stelleAccuratezza": 1,
     "fulminiVelocita": 5,
-    "quantizzazione": "Q5_1"
+    "quantizzazione": "Q5_1",
+    "werItaliano": 60.0
   },
   {
     "id": "whisper-base-q5_1",
@@ -33,7 +34,8 @@
     "ramConsigliataMb": 400,
     "stelleAccuratezza": 1,
     "fulminiVelocita": 4,
-    "quantizzazione": "Q5_1"
+    "quantizzazione": "Q5_1",
+    "werItaliano": 42.5
   },
   {
     "id": "whisper-small-q5_1",
@@ -51,7 +53,8 @@
     "ramConsigliataMb": 900,
     "stelleAccuratezza": 1,
     "fulminiVelocita": 3,
-    "quantizzazione": "Q5_1"
+    "quantizzazione": "Q5_1",
+    "werItaliano": 25.3
   },
   {
     "id": "whisper-medium-q5_0",
@@ -69,7 +72,8 @@
     "ramConsigliataMb": 1000,
     "stelleAccuratezza": 2,
     "fulminiVelocita": 2,
-    "quantizzazione": "Q5_0"
+    "quantizzazione": "Q5_0",
+    "werItaliano": 17.1
   },
   {
     "id": "whisper-large-v3-turbo-q5_0",
@@ -88,7 +92,8 @@
     "stelleAccuratezza": 4,
     "fulminiVelocita": 2,
     "quantizzazione": "Q5_0",
-    "consigliato": true
+    "consigliato": true,
+    "werItaliano": 11.7
   },
   {
     "id": "whisper-large-v3-turbo-q8_0",
@@ -125,7 +130,8 @@
     "stelleAccuratezza": 5,
     "fulminiVelocita": 1,
     "quantizzazione": "Q5_0",
-    "consigliato": true
+    "consigliato": true,
+    "werItaliano": 9.3
   },
   {
     "id": "parakeet-tdt-0.6b-v3-int8",
@@ -154,7 +160,8 @@
     "ramConsigliataMb": 1000,
     "stelleAccuratezza": 3,
     "fulminiVelocita": 5,
-    "quantizzazione": "int8"
+    "quantizzazione": "int8",
+    "werItaliano": 14.8
   },
   {
     "id": "parakeet-ultra-0.6b-int8",
@@ -184,7 +191,8 @@
     "stelleAccuratezza": 4,
     "fulminiVelocita": 5,
     "quantizzazione": "int8",
-    "consigliato": true
+    "consigliato": true,
+    "werItaliano": 12.8
   },
   {
     "id": "nemo-fastconformer-multi-20k-int8",
@@ -211,7 +219,8 @@
     "ramConsigliataMb": 400,
     "stelleAccuratezza": 1,
     "fulminiVelocita": 5,
-    "quantizzazione": "int8"
+    "quantizzazione": "int8",
+    "werItaliano": 35.0
   },
   {
     "id": "omnilingual-300m-ctc-v2-int8",
@@ -229,7 +238,8 @@
     "ramConsigliataMb": 600,
     "stelleAccuratezza": 1,
     "fulminiVelocita": 4,
-    "quantizzazione": "int8"
+    "quantizzazione": "int8",
+    "werItaliano": 38.9
   },
   {
     "id": "omnilingual-1b-ctc-v2-int8",
@@ -247,7 +257,8 @@
     "ramConsigliataMb": 1500,
     "stelleAccuratezza": 1,
     "fulminiVelocita": 1,
-    "quantizzazione": "int8"
+    "quantizzazione": "int8",
+    "werItaliano": 29.4
   },
   {
     "id": "whisper-it-turbo-multi-yodas-q5_0",
@@ -267,7 +278,8 @@
     "ramConsigliataMb": 1000,
     "stelleAccuratezza": 3,
     "fulminiVelocita": 2,
-    "quantizzazione": "Q5_0"
+    "quantizzazione": "Q5_0",
+    "werItaliano": 14.9
   },
   {
     "id": "whisper-it-distil-v0.2-q5_0",
@@ -287,7 +299,8 @@
     "ramConsigliataMb": 900,
     "stelleAccuratezza": 4,
     "fulminiVelocita": 2,
-    "quantizzazione": "Q5_0"
+    "quantizzazione": "Q5_0",
+    "werItaliano": 12.5
   },
   {
     "id": "whisper-it-large-v3-yodas-q5_0",
@@ -307,7 +320,8 @@
     "ramConsigliataMb": 2000,
     "stelleAccuratezza": 4,
     "fulminiVelocita": 1,
-    "quantizzazione": "Q5_0"
+    "quantizzazione": "Q5_0",
+    "werItaliano": 13.0
   },
   {
     "id": "moonshine-v2-base-en",

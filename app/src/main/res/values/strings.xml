@@ -111,6 +111,9 @@
     <string name="modello_non_verificato">Not in the catalog: the app couldn\'t verify the file.</string>
     <string name="modello_qualita">Accuracy %1$s · Speed %2$s</string>
     <string name="modello_peso">Download %1$s · Recommended RAM %2$s</string>
+    <string name="modello_wer_italiano">On Italian voice messages it gets %1$s of words wrong</string>
+    <string name="modello_accuratezza_stimata">Estimated accuracy: not measured on our voice messages</string>
+    <string name="modelli_stelle_spiegazione">The accuracy stars come from our tests on 101 Italian voice messages. For other languages, and for models we haven\'t tested, they are an estimate.</string>
     <string name="modello_riassunto_catalogo">Accuracy %1$d/5 · Speed %2$d/5 · %3$s</string>
     <string name="modello_riassunto_installato">%1$s · %2$s</string>
     <string name="modelli_meno_precisi">Less accurate</string>

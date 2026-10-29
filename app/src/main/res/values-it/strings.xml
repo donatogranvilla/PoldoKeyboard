@@ -109,6 +109,9 @@
     <string name="modello_non_verificato">Fuori catalogo: l\'app non ha potuto verificare il file.</string>
     <string name="modello_qualita">Accuratezza %1$s · Velocità %2$s</string>
     <string name="modello_peso">Download %1$s · RAM consigliata %2$s</string>
+    <string name="modello_wer_italiano">Sui vocali italiani sbaglia il %1$s delle parole</string>
+    <string name="modello_accuratezza_stimata">Accuratezza stimata: non misurata sui nostri vocali</string>
+    <string name="modelli_stelle_spiegazione">Le stelle dell\'accuratezza vengono dalle nostre prove su 101 vocali italiani. Per le altre lingue, e per i modelli che non abbiamo provato, sono una stima.</string>
     <string name="modello_riassunto_catalogo">Accuratezza %1$d/5 · Velocità %2$d/5 · %3$s</string>
     <string name="modello_riassunto_installato">%1$s · %2$s</string>
     <string name="modelli_meno_precisi">Meno precisi</string>

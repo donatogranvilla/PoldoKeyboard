@@ -17,6 +17,8 @@ import java.io.File
  * @property sha256 Impronta del file o dell'archivio scaricato: riconosce il modello all'import.
  * @property consigliato true per i modelli da proporre per primi, scelti dalle prove sul banco; nel catalogo, così si
  *   cambiano con l'aggiornamento online. Le versioni dell'app che non conoscono il campo lo ignorano.
+ * @property werItaliano La percentuale di parole sbagliate sui vocali italiani del banco di prova, o null se il
+ *   modello non è stato misurato: allora [stelleAccuratezza] è una stima.
  */
 @Serializable
 data class ModelInfo(
@@ -38,6 +40,7 @@ data class ModelInfo(
     val fulminiVelocita: Int = 4,
     val quantizzazione: String = "Q5_1",
     val consigliato: Boolean = false,
+    val werItaliano: Double? = null,
 ) {
     val formattedSize: String
         get() {

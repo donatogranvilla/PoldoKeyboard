@@ -221,6 +221,7 @@ fun SchermataModelli(viewModel: ModelliViewModel, onIndietro: () -> Unit) {
                 item {
                     Column(modifier = Modifier.padding(bottom = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         TestoNota(stringResource(R.string.modelli_da_scaricare_spiegazione))
+                        TestoNota(stringResource(R.string.modelli_stelle_spiegazione))
                         val ramGb = (profilo.ramTotaleMb + 512) / 1024
                         TestoNota(stringResource(R.string.modelli_dispositivo, ramGb, profilo.numCoreCpu))
                         AggiornamentoElenco(stato = viewModel.statoCatalogo, onAggiorna = viewModel::aggiornaCatalogo)
@@ -685,6 +686,11 @@ private fun RigaModelloCatalogo(
         Text(text = modello.description, style = MaterialTheme.typography.bodyMedium)
         Dettaglio(stringResource(R.string.modello_lingue, descrizioneLingue(modello.lingue)))
         Dettaglio(stringResource(R.string.modello_qualita, stelle(modello.stelleAccuratezza), stelle(modello.fulminiVelocita)))
+        // Le stelle vengono dalle prove sui vocali italiani: per gli altri modelli sono una stima, e si dice
+        Dettaglio(
+            modello.werItaliano?.let { stringResource(R.string.modello_wer_italiano, percentuale(it)) }
+                ?: stringResource(R.string.modello_accuratezza_stimata),
+        )
         Dettaglio(
             stringResource(
                 R.string.modello_peso,
